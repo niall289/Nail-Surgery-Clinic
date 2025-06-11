@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from './ui/button';
+import { Button } from './button';
 import { Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
