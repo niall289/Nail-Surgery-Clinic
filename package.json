@@ -48,7 +48,7 @@
     "@tanstack/react-query": "^5.74.11",
     "@types/multer": "^1.4.12",
     "buffer-to-data-url": "^1.0.0",
-    "class-variance-authority": "^0.7.0",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "connect-pg-simple": "^10.0.0",
