@@ -1,5 +1,5 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { Calendar, ExternalLink } from 'react-feather';
 
 interface CalendarEmbedProps {
   onBookingComplete?: () => void;
@@ -7,6 +7,23 @@ interface CalendarEmbedProps {
 }
 
 export function CalendarEmbed({ onBookingComplete, primaryColor = "hsl(186, 100%, 30%)" }: CalendarEmbedProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleBookingComplete = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      onBookingComplete();
+    }, 1000);
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6 my-4 shadow-lg">
       <div className="text-center mb-6">
@@ -27,18 +44,40 @@ export function CalendarEmbed({ onBookingComplete, primaryColor = "hsl(186, 100%
         />
       </div>
 
-      <div className="text-center space-y-4">
+      <div className="space-y-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center space-x-2 text-blue-700">
+            <Calendar className="h-5 w-5" />
+            <h3 className="font-medium">Book Your Appointment</h3>
+          </div>
+          <p className="text-sm text-blue-600 mt-1">
+            Click below to open our booking system in a new tab
+          </p>
+        </div>
+
         <button
-          onClick={onBookingComplete}
-          className="w-full py-4 px-6 text-white font-semibold rounded-lg text-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
+          onClick={() => window.open('https://calendly.com/footcare-clinic', '_blank')}
+          className="w-full bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2"
           style={{ backgroundColor: primaryColor }}
         >
-          ✅ Done! I've completed my booking
+          <ExternalLink className="h-4 w-4" />
+          <span>Open Booking Calendar</span>
         </button>
-        
-        <p className="text-sm text-gray-600">
-          Having trouble? Call us at: <strong>089 9678596</strong>
-        </p>
+
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
+          <p className="text-sm text-yellow-800">
+            📅 Please complete your booking in the new tab, then click the button below to continue.
+          </p>
+        </div>
+
+        <div className="text-center">
+          <button
+            onClick={handleBookingComplete}
+            className="bg-green-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors"
+          >
+            ✅ I've completed my booking
+          </button>
+        </div>
       </div>
     </div>
   );

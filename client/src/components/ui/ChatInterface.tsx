@@ -75,9 +75,25 @@ export default function ChatInterface({
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      // Use setTimeout to ensure DOM is updated before scrolling
+      setTimeout(() => {
+        if (chatContainerRef.current) {
+          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+      }, 100);
     }
   }, [messages, options]);
+
+  // Additional scroll trigger for when typing animation completes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      }
+    }, 1600); // After typing animation completes
+    
+    return () => clearTimeout(timer);
+  }, [messages.length]);
 
   return (
     <div
