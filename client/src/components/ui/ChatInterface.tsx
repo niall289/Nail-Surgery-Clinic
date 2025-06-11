@@ -143,6 +143,21 @@ export default function ChatInterface({
           {options && options.length > 0 && (
             <ChatOptions options={options} onSelect={handleOptionSelect} primaryColor={primaryColor} />
           )}
+
+          {/* 👇 Embedded calendar appears in flow, not at bottom */}
+          {currentStep === "calendar_booking" && (
+            <div className="mt-4">
+              <CalendarEmbed
+                onBookingComplete={() =>
+                  handleOptionSelect({
+                    text: "✅ Done! I've completed my booking",
+                    value: "booked"
+                  })
+                }
+                primaryColor={primaryColor}
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -164,13 +179,6 @@ export default function ChatInterface({
           />
         )}
       </div>
-
-      {currentStep === "calendar_booking" && (
-        <CalendarEmbed 
-          onBookingComplete={() => handleOptionSelect({ text: "✅ Done! I've completed my booking", value: "booked" })}
-          primaryColor={primaryColor}
-        />
-      )}
     </div>
   );
 }
