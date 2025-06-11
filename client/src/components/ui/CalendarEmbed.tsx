@@ -1,74 +1,64 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, ExternalLink } from 'react-feather';
+import { Calendar, CheckCircle } from 'react-feather';
 
 interface CalendarEmbedProps {
   onBookingComplete?: () => void;
-  primaryColor?: string;
 }
 
-export function CalendarEmbed({ onBookingComplete, primaryColor = "hsl(186, 100%, 30%)" }: CalendarEmbedProps) {
+export function CalendarEmbed({ onBookingComplete }: CalendarEmbedProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleBookingComplete = () => {
-    if (onBookingComplete) {
-      onBookingComplete();
-    }
+    setIsLoading(true);
+    // Simulate booking process
+    setTimeout(() => {
+      setIsLoading(false);
+      if (onBookingComplete) {
+        onBookingComplete();
+      }
+    }, 2000);
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 my-4 shadow-lg">
-      <div className="text-center mb-6">
-        <h3 className="text-xl font-semibold mb-3" style={{ color: primaryColor }}>
-          📅 Book Your Appointment
-        </h3>
-        <p className="text-gray-700 mb-4">
-          Please select your preferred appointment time below:
-        </p>
+    <div className="w-full max-w-4xl mx-auto p-4 space-y-6">
+      <div className="text-center space-y-2">
+        <div className="flex items-center justify-center gap-2 text-xl font-semibold text-teal-700">
+          <Calendar className="w-6 h-6" />
+          Book Your Appointment
+        </div>
+        <p className="text-gray-700">Please select your preferred appointment time below:</p>
       </div>
 
-      <div className="w-full mb-6">
-        <iframe 
-          src="https://footcareclinic-ireland.eu1.cliniko.com/bookings#location"
-          className="w-full h-[500px] border border-gray-300 rounded-lg"
-          title="FootCare Clinic Booking Calendar"
-          loading="lazy"
+      <div className="relative bg-white rounded-lg shadow-lg overflow-hidden">
+        <iframe
+          src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ2FER-4uOdAl1_eR5EvCDPtYJw0A59zkJn4I2hFnJYPJrBU_7Mri6JJEBBjdQWg3Q2eo2hbgLDb?gv=true"
+          style={{ border: 0 }}
+          width="100%"
+          height="600"
+          frameBorder="0"
+          scrolling="no"
+          title="Book Appointment Calendar"
         />
+
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-10">
+            <div className="text-center space-y-2">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto"></div>
+              <p className="text-sm text-gray-600">Processing booking...</p>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="space-y-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center space-x-2 text-blue-700">
-            <Calendar className="h-5 w-5" />
-            <h3 className="font-medium">Book Your Appointment</h3>
-          </div>
-          <p className="text-sm text-blue-600 mt-1">
-            Click below to open our booking system in a new tab
-          </p>
-        </div>
-
+      <div className="flex justify-center pt-4 border-t border-gray-200">
         <button
-          onClick={() => window.open('https://calendly.com/footcare-clinic', '_blank')}
-          className="w-full bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2"
-          style={{ backgroundColor: primaryColor }}
+          onClick={handleBookingComplete}
+          disabled={isLoading}
+          className="px-8 py-4 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors duration-200 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105 transition-transform"
         >
-          <ExternalLink className="h-4 w-4" />
-          <span>Open Booking Calendar</span>
+          <CheckCircle className="w-5 h-5" />
+          {isLoading ? 'Processing...' : '✅ I\'ve completed my booking'}
         </button>
-
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
-          <p className="text-sm text-yellow-800">
-            📅 Please complete your booking in the new tab, then click the button below to continue.
-          </p>
-        </div>
-
-        <div className="text-center">
-          <button
-            onClick={handleBookingComplete}
-            className="bg-green-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors"
-          >
-            ✅ I've completed my booking
-          </button>
-        </div>
       </div>
     </div>
   );
