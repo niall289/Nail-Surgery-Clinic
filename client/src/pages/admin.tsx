@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import ExportButton from '@/components/ExportButton';
+import ExportButton from '@/components/ui/ExportButton';
 import AdminAuth from '@/components/AdminAuth';
 import { formatDate } from '@/lib/utils';
 
