@@ -158,13 +158,39 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       const imageData = await onImageUpload(file);
       addMessage("Image uploaded successfully", "user");
       addMessage("Analyzing your foot image...", "bot");
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/analyze-foot-image`, {
+      
+      // Construct the API URL properly
+      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000' : '');
+      const fullUrl = apiUrl ? `${apiUrl}/api/analyze-foot-image` : '/api/analyze-foot-image';
+      
+      const response = await fetch(fullUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: imageData, consultationId })
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ 
+          imageBase64: imageData, 
+          consultationId: consultationId || null 
+        })
       });
-      if (!response.ok) throw new Error('Image analysis failed');
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API Error Response:", errorText);
+        throw new Error(`Image analysis failed: ${response.status} ${response.statusText}`);
+      }
+      
       const analysis = await response.json();
+      console.log("Analysis result:", analysis);
+      
+      // Check if we got a valid analysis or fallback
+      if (analysis.condition) {
+        addMessage(`**Analysis Complete:**\n\n**Condition:** ${analysis.condition}\n**Severity:** ${analysis.severity}\n\n**Recommendations:**\n${analysis.recommendations?.map((rec: string) => `• ${rec}`).join('\n') || 'No specific recommendations available'}\n\n*${analysis.disclaimer || 'Please consult with a healthcare professional for proper diagnosis.'}*`, "bot");
+      } else {
+        addMessage("I've analyzed your image, but couldn't determine a specific condition. Let's continue with describing your symptoms.", "bot");
+      }
+      
       setUserData(prev => ({
         ...prev,
         hasImage: "yes",
@@ -172,17 +198,23 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
         imageAnalysis: JSON.stringify(analysis),
         footAnalysis: analysis
       }));
+      
       const step = chatFlow[currentStep];
       const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
       if (nextStepId) processStep(nextStepId);
     } catch (err) {
       console.error("Image analysis error:", err);
-      addMessage("We couldn't analyze your image. Let's continue.", "bot");
+      addMessage("I'm having trouble analyzing your image right now. Let's continue with describing your symptoms instead.", "bot");
+      
+      // Continue to next step even if image analysis fails
+      const step = chatFlow[currentStep];
+      const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
+      if (nextStepId) processStep(nextStepId);
     } finally {
       setShowImageUpload(false);
       setIsWaitingForResponse(false);
     }
-  }, [onImageUpload, consultationId, currentStep]);
+  }, [onImageUpload, consultationId, currentStep, chatFlow, addMessage, setUserData, processStep])p]);
 
   const handleSymptomAnalysis = useCallback(async (symptoms: string) => {
     setIsWaitingForResponse(true);
