@@ -30,7 +30,7 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port: 5000,
+    port: 5173,
     host: true,
     allowedHosts: [
       "c16b3eaf-2dc7-4318-9492-81b2d78892e6-00-33cjkltnkrj51.kirk.replit.dev"
