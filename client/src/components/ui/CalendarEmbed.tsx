@@ -9,14 +9,6 @@ interface CalendarEmbedProps {
 export function CalendarEmbed({ onBookingComplete, primaryColor = "hsl(186, 100%, 30%)" }: CalendarEmbedProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   const handleBookingComplete = () => {
     setIsLoading(true);
     setTimeout(() => {

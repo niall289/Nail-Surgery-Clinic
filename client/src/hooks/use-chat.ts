@@ -175,7 +175,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
         try {
           const base64String = reader.result as string;
 
-          const apiUrl = import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin;
+          const apiUrl = import.meta.env.VITE_API_URL || 'http://0.0.0.0:5000';
           const fullUrl = `${apiUrl}/api/analyze-foot-image`;
 
           console.log("Sending image analysis request to:", fullUrl);
