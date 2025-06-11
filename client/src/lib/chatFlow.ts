@@ -1,6 +1,6 @@
 
       import { z } from "zod";
-      import { nameSchema, phoneSchema, emailSchema } from "@shared/schema";
+      import { nameSchema, phoneSchema, emailSchema } from "../../../shared/schema";
 
       export interface ChatOption {
         text: string;
