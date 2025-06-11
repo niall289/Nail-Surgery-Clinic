@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
-import ChatInterface from "@/components/ChatInterface";
+import ChatInterface from "@/components/ui/ChatInterface";
 import type { Consultation } from "@shared/schema";
 
 export default function Chat() {
