@@ -91,7 +91,7 @@ export default function ChatInterface({
         chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
       }
     }, 1600); // After typing animation completes
-    
+
     return () => clearTimeout(timer);
   }, [messages.length]);
 

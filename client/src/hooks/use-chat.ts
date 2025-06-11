@@ -162,66 +162,88 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
   const handleImageUpload = useCallback(async (file: File) => {
     if (!onImageUpload) return;
     setIsWaitingForResponse(true);
+    setShowImageUpload(false);
+
     try {
       const imageData = await onImageUpload(file);
       addMessage("Image uploaded successfully", "user");
       addMessage("Analyzing your foot image...", "bot");
-      
-      // Use the correct API endpoint
-      const apiUrl = import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin;
-      const fullUrl = `${apiUrl}/api/analyze-foot-image`;
-      
-      console.log("Sending image analysis request to:", fullUrl);
-      
-      const response = await fetch(fullUrl, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ 
-          imageBase64: imageData, 
-          consultationId: consultationId || null 
-        })
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API Error Response:", response.status, errorText);
-        throw new Error(`Image analysis failed: ${response.status} ${response.statusText}`);
-      }
-      
-      const analysis = await response.json();
-      console.log("Analysis result:", analysis);
-      
-      // Store the analysis data first
-      setUserData(prev => ({
-        ...prev,
-        hasImage: "yes",
-        imagePath: imageData,
-        imageAnalysis: JSON.stringify(analysis),
-        footAnalysis: analysis
-      }));
-      
-      // Move to next step which will display the analysis
-      const step = chatFlow[currentStep];
-      const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
-      if (nextStepId) {
-        setTimeout(() => processStep(nextStepId), 1000);
-      }
-      
+
+      // Convert file to base64 for API
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64String = reader.result as string;
+
+          const apiUrl = import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin;
+          const fullUrl = `${apiUrl}/api/analyze-foot-image`;
+
+          console.log("Sending image analysis request to:", fullUrl);
+
+          const response = await fetch(fullUrl, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({ 
+              imageBase64: base64String, 
+              consultationId: consultationId || null 
+            })
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error("API Error Response:", response.status, errorText);
+            throw new Error(`Image analysis failed: ${response.status} ${response.statusText}`);
+          }
+
+          const analysis = await response.json();
+          console.log("Analysis result:", analysis);
+
+          // Store the analysis data
+          setUserData(prev => ({
+            ...prev,
+            hasImage: "yes",
+            imagePath: base64String,
+            imageAnalysis: JSON.stringify(analysis),
+            footAnalysis: analysis
+          }));
+
+          addMessage("Analysis complete! Here's what I found:", "bot");
+
+          // Move to next step to display results
+          const step = chatFlow[currentStep];
+          const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
+          if (nextStepId) {
+            setTimeout(() => processStep(nextStepId), 1000);
+          }
+        } catch (err) {
+          console.error("Image analysis error:", err);
+          addMessage("I'm having trouble analyzing your image right now. Let's continue with describing your symptoms instead.", "bot");
+
+          // Continue to next step even if image analysis fails
+          const step = chatFlow[currentStep];
+          const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
+          if (nextStepId) {
+            setTimeout(() => processStep(nextStepId), 1000);
+          }
+        } finally {
+          setIsWaitingForResponse(false);
+        }
+      };
+
+      reader.onerror = () => {
+        console.error("File reading error");
+        addMessage("I'm having trouble reading your image. Let's continue with describing your symptoms instead.", "bot");
+        setIsWaitingForResponse(false);
+      };
+
+      reader.readAsDataURL(file);
+
     } catch (err) {
-      console.error("Image analysis error:", err);
-      addMessage("I'm having trouble analyzing your image right now. Let's continue with describing your symptoms instead.", "bot");
-      
-      // Continue to next step even if image analysis fails
-      const step = chatFlow[currentStep];
-      const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
-      if (nextStepId) {
-        setTimeout(() => processStep(nextStepId), 1000);
-      }
-    } finally {
-      setShowImageUpload(false);
+      console.error("Image upload error:", err);
+      addMessage("I'm having trouble with your image upload. Let's continue with describing your symptoms instead.", "bot");
       setIsWaitingForResponse(false);
     }
   }, [onImageUpload, consultationId, currentStep, addMessage, processStep]);
