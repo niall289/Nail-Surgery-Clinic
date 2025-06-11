@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* FootCare Clinic teal/green colors */
+    --primary: 174 86% 36%; /* #19b8a6 - teal-500 */
+    --primary-foreground: 0 0% 100%;
+
+    --primary-light: 174 86% 46%; /* #20e0c9 - teal-300 */
+    --primary-dark: 174 86% 26%; /* #138676 - teal-700 */
+
+    --secondary: 140 43% 94%;
+    --secondary-foreground: 174 86% 26%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 174 86% 96%;
+    --accent-foreground: 174 86% 26%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142 71% 45%; /* #10b981 - green-500 */
+    --success-foreground: 210 40% 98%;
+
+    --border: 174 12% 90%;
+    --input: 174 12% 90%;
+    --ring: 174 86% 36%;
+
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-neutral-light text-foreground;
+  }
+
+  /* Custom scrollbar styles */
+  .chat-container::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .chat-container::-webkit-scrollbar-track {
+    background: #f3f4f6;
+  }
+
+  .chat-container::-webkit-scrollbar-thumb {
+    background-color: #9ca3af;
+    border-radius: 20px;
+  }
+
+  .bounce-in {
+    animation: bounce-in 0.5s ease;
+  }
+
+  @keyframes bounce-in {
+    0% { transform: scale(0.8); opacity: 0; }
+    70% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .typing-indicator {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .typing-indicator span {
+    height: 8px;
+    width: 8px;
+    margin: 0 2px;
+    background-color: hsl(var(--primary));
+    border-radius: 50%;
+    display: inline-block;
+    opacity: 0.6;
+  }
+
+  .typing-indicator span:nth-child(1) {
+    animation: bounce 1s infinite 0.1s;
+  }
+  .typing-indicator span:nth-child(2) {
+    animation: bounce 1s infinite 0.3s;
+  }
+  .typing-indicator span:nth-child(3) {
+    animation: bounce 1s infinite 0.5s;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  .chat-options button:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+  }
+}

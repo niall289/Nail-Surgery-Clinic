@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Embed Instructions – FootCare Chatbot</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4f7;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #fff;
+      max-width: 700px;
+      width: 100%;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #00847e;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    p {
+      color: #444;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    code {
+      background-color: #f5f5f5;
+      display: block;
+      padding: 16px;
+      margin: 20px 0;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 14px;
+      color: #222;
+    }
+    .note {
+      font-size: 14px;
+      color: #888;
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Embed the FootCare Chatbot</h1>
+    <p>To embed the Fiona chatbot on your website, copy and paste the following code just before the closing <code>&lt;/body&gt;</code> tag of your HTML:</p>
+
+    <code>
+      &lt;script&gt;<br/>
+      &nbsp;&nbsp;window.fcChat = window.fcChat || function () {<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;(window.fcChat.q = window.fcChat.q || []).push(arguments);<br/>
+      &nbsp;&nbsp;};<br/>
+      &nbsp;&nbsp;fcChat('init');<br/>
+      &lt;/script&gt;<br/>
+      &lt;script src="https://footcareclinic.engageiobots.com/widget.js" defer&gt;&lt;/script&gt;
+    </code>
+
+    <p>This will add a floating Fiona chat button to your website. When clicked, it opens the chatbot window for visitors to interact with.</p>
+
+    <div class="note">Need help installing? Let us know – we’re happy to help.</div>
+  </div>
+</body>
+</html>
