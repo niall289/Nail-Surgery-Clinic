@@ -54,10 +54,10 @@ export function CalendarEmbed({ onBookingComplete }: CalendarEmbedProps) {
         <button
           onClick={handleBookingComplete}
           disabled={isLoading}
-          className="px-8 py-4 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors duration-200 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105 transition-transform"
+          className="px-6 py-3 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 flex items-center gap-2 shadow-sm hover:shadow-md"
         >
-          <CheckCircle className="w-5 h-5" />
-          {isLoading ? 'Processing...' : '✅ I\'ve completed my booking'}
+          <CheckCircle className="w-4 h-4" />
+          {isLoading ? 'Processing...' : 'I\'ve completed my booking'}
         </button>
       </div>
     </div>
