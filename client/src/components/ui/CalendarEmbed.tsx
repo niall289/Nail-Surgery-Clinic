@@ -41,7 +41,7 @@ export function CalendarEmbed({ onBookingComplete, primaryColor = "hsl(186, 100%
         {!iframeError ? (
           <>
             <iframe
-              src="https://footcareclinic.cliniko.com/bookings"
+              src="https://footcareclinic-ireland.eu1.cliniko.com/bookings#location"
               style={{ border: 0, width: '100%', height: '600px' }}
               frameBorder="0"
               scrolling="yes"
