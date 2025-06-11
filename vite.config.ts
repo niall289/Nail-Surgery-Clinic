@@ -22,6 +22,8 @@ export default defineConfig({
       "@": path.resolve(import.meta.dirname, "client", "src"),
       "@shared": path.resolve(import.meta.dirname, "../FootCarePortal-1/shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+      "@components": path.resolve(import.meta.dirname, "client", "src", "components"),
+      "@components/ui": path.resolve(import.meta.dirname, "client", "src", "components", "ui"),
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
