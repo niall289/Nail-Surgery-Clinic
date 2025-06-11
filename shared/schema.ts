@@ -15,6 +15,15 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
+// ✅ Users table (added for schema sync)
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey(),
+  name: varchar("name").notNull(),
+  email: varchar("email").unique(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Patient table
 export const patients = pgTable("patients", {
   id: serial("id").primaryKey(),
@@ -70,7 +79,7 @@ export const conditions = pgTable("conditions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Clinics table — ✅ updated with clinicMessage field
+// Clinics table
 export const clinics = pgTable("clinics", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(),
@@ -82,7 +91,7 @@ export const clinics = pgTable("clinics", {
   longitude: varchar("longitude").notNull(),
   phone: varchar("phone"),
   email: varchar("email"),
-  clinicMessage: text("clinic_message").default(""), // ✅ added field
+  clinicMessage: text("clinic_message").default(""),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -157,7 +166,6 @@ export const chatbotToneEnum = pgEnum('chatbot_tone', ['Friendly', 'Professional
 export const chatbotSettings = pgTable("chatbot_settings", {
   id: serial("id").primaryKey(),
   welcomeMessage: text("welcome_message").default("Welcome to FootCare Clinic! Let''s get started."),
-
   botDisplayName: varchar("bot_display_name").default("Fiona - FootCare Assistant"),
   ctaButtonLabel: varchar("cta_button_label").default("Ask Fiona"),
   chatbotTone: chatbotToneEnum("chatbot_tone").default("Friendly"),
@@ -166,6 +174,9 @@ export const chatbotSettings = pgTable("chatbot_settings", {
 });
 
 // Insert schemas
+export const insertUserSchema = createInsertSchema(users).pick({
+  id: true, name: true, email: true
+});
 export const insertPatientSchema = createInsertSchema(patients).pick({
   name: true, email: true, phone: true, dateOfBirth: true
 });
@@ -202,6 +213,8 @@ export const phoneSchema = z.string().regex(/^[\+]?[0-9\s\-\(\)]{10,}$/, "Invali
 export const emailSchema = z.string().email("Invalid email address");
 
 // Types
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpsertUser = Partial<InsertUser> & { id: string };
 export type InsertPatient = z.infer<typeof insertPatientSchema>;
 export type InsertAssessment = z.infer<typeof insertAssessmentSchema>;
 export type InsertResponse = z.infer<typeof insertResponseSchema>;
@@ -210,6 +223,7 @@ export type InsertCondition = z.infer<typeof insertConditionSchema>;
 export type InsertClinic = z.infer<typeof insertClinicSchema>;
 export type InsertChatbotSettings = z.infer<typeof insertChatbotSettingsSchema>;
 export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
+export type User = typeof users.$inferSelect;
 export type Patient = typeof patients.$inferSelect;
 export type Assessment = typeof assessments.$inferSelect;
 export type Response = typeof responses.$inferSelect;
@@ -218,5 +232,3 @@ export type Condition = typeof conditions.$inferSelect;
 export type Clinic = typeof clinics.$inferSelect;
 export type ChatbotSettings = typeof chatbotSettings.$inferSelect;
 export type Consultation = typeof consultations.$inferSelect;
-
-// Relations (optional — same as before if needed)
