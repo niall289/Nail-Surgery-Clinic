@@ -437,9 +437,6 @@
         calendar_booking: {
           message: "",
           component: "CalendarEmbed",
-          options: [
-            { text: "✅ Done! I've completed my booking", value: "booked" }
-          ],
           next: "booking_confirmation"
         },
         booking_confirmation: {

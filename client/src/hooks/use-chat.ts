@@ -160,8 +160,8 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       addMessage("Analyzing your foot image...", "bot");
       
       // Construct the API URL properly
-      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000' : '');
-      const fullUrl = apiUrl ? `${apiUrl}/api/analyze-foot-image` : '/api/analyze-foot-image';
+      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin);
+      const fullUrl = `${apiUrl}/api/analyze-foot-image`;
       
       const response = await fetch(fullUrl, {
         method: 'POST',
@@ -220,7 +220,8 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
     setIsWaitingForResponse(true);
     try {
       addMessage("Analyzing your symptoms...", "bot");
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/analyze-symptoms`, {
+      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin);
+      const response = await fetch(`${apiUrl}/api/analyze-symptoms`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ symptoms, consultationId })

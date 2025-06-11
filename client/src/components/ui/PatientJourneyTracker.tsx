@@ -47,6 +47,11 @@ const chatStepToJourneyMap: Record<string, string> = {
   'prepare_transfer': 'recommendation',
 
   // Follow-up steps
+  'confirm': 'followup',
+  'calendar_booking': 'followup',
+  'booking_confirmation': 'followup',
+  'booking_thank_you': 'followup',
+  'final_question': 'followup',
   'transfer_whatsapp': 'followup',
   'whatsapp_handoff': 'followup',
   'provide_phone': 'followup',

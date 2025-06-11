@@ -5,12 +5,17 @@ interface ChatMessageProps {
   message: string;
   type: "bot" | "user";
   isTyping?: boolean;
-  primaryColor?: string; // Added to allow theme color for user messages
+  primaryColor?: string;
 }
 
-const DEFAULT_USER_BUBBLE_COLOR = "hsl(186, 100%, 30%)"; // Default teal from ChatInterface
+const DEFAULT_PRIMARY_COLOR = "hsl(186, 100%, 30%)"; // Default teal
 
-const ChatMessage: FC<ChatMessageProps> = ({ message, type, isTyping = false, primaryColor = DEFAULT_USER_BUBBLE_COLOR }) => {
+export default function ChatMessage({
+  message,
+  type,
+  isTyping = false,
+  primaryColor = DEFAULT_PRIMARY_COLOR
+}: ChatMessageProps) {
   // To prevent persistent typing indicators, let's add a timeout
   const [isStillTyping, setIsStillTyping] = useState(isTyping);
 
@@ -78,5 +83,3 @@ const ChatMessage: FC<ChatMessageProps> = ({ message, type, isTyping = false, pr
     </div>
   );
 };
-
-export default ChatMessage;

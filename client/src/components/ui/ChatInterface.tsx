@@ -161,7 +161,10 @@ export default function ChatInterface({
       )}
 
       {currentStep === "calendar_booking" && (
-        <CalendarEmbed />
+        <CalendarEmbed 
+          onBookingComplete={() => handleOptionSelect({ text: "✅ Done! I've completed my booking", value: "booked" })}
+          primaryColor={primaryColor}
+        />
       )}
     </div>
   );
