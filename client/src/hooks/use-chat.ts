@@ -9,8 +9,9 @@ import {
 
 interface Message {
   text: string;
-  type: "bot" | "user";
+  type: "bot" | "user" | "analysis";
   isTyping?: boolean;
+  data?: any;
 }
 
 interface UseChatProps {
@@ -90,7 +91,6 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
     setMessages(prev => prev.map(m => ({ ...m, isTyping: false })));
     setCurrentStep(stepId);
 
-    // Resolve message content - handle both string and function messages
     let messageText = '';
     if (typeof step.message === 'function') {
       messageText = step.message(userData);
@@ -103,7 +103,15 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       addMessage(messageText, "bot", true);
       setTimeout(() => {
         setMessages(prev => prev.map(m => ({ ...m, isTyping: false })));
-        addMessage(`Based on my analysis, it appears you may have ${analysis.condition} (${analysis.severity} severity).\n\nRecommendations:\n${analysis.recommendations.map((r: string) => `• ${r}`).join("\n")}\n\n${analysis.disclaimer}`, "bot");
+        setMessages(prev => [
+          ...prev,
+          {
+            type: "analysis",
+            text: "",
+            isTyping: false,
+            data: analysis
+          }
+        ]);
         step.delay ? setTimeout(() => setupStepInput(step), step.delay) : setupStepInput(step);
       }, 1500);
       return;
@@ -169,16 +177,13 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       addMessage("Image uploaded successfully", "user");
       addMessage("Analyzing your foot image...", "bot");
 
-      // Convert file to base64 for API
       const reader = new FileReader();
       reader.onload = async () => {
         try {
           const base64String = reader.result as string;
 
-          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+          const apiUrl = import.meta.env.VITE_API_URL || '';
           const fullUrl = `${apiUrl}/api/analyze-foot-image`;
-
-          console.log("Sending image analysis request to:", fullUrl);
 
           const response = await fetch(fullUrl, {
             method: 'POST',
@@ -199,20 +204,25 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
           }
 
           const analysis = await response.json();
-          console.log("Analysis result:", analysis);
 
-          // Store the analysis data
-          setUserData(prev => ({
-            ...prev,
-            hasImage: "yes",
-            imagePath: base64String,
-            imageAnalysis: JSON.stringify(analysis),
-            footAnalysis: analysis
-          }));
+          setUserData(prev => {
+            const updated = {
+              ...prev,
+              hasImage: "yes",
+              imagePath: base64String,
+              imageAnalysis: JSON.stringify(analysis),
+              footAnalysis: analysis
+            };
+            onSaveData({
+              ...updated,
+              consultationId,
+              conversationLog
+            }, false);
+            return updated;
+          });
 
           addMessage("Analysis complete! Here's what I found:", "bot");
 
-          // Move to next step to display results
           const step = chatFlow[currentStep];
           const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
           if (nextStepId) {
@@ -222,7 +232,6 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
           console.error("Image analysis error:", err);
           addMessage("I'm having trouble analyzing your image right now. Let's continue with describing your symptoms instead.", "bot");
 
-          // Continue to next step even if image analysis fails
           const step = chatFlow[currentStep];
           const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
           if (nextStepId) {
@@ -246,13 +255,13 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       addMessage("I'm having trouble with your image upload. Let's continue with describing your symptoms instead.", "bot");
       setIsWaitingForResponse(false);
     }
-  }, [onImageUpload, consultationId, currentStep, addMessage, processStep]);
+  }, [onImageUpload, consultationId, currentStep, addMessage, processStep, conversationLog, onSaveData]);
 
   const handleSymptomAnalysis = useCallback(async (symptoms: string) => {
     setIsWaitingForResponse(true);
     try {
       addMessage("Analyzing your symptoms...", "bot");
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const apiUrl = import.meta.env.VITE_API_URL || '';
       const response = await fetch(`${apiUrl}/api/analyze-symptoms`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

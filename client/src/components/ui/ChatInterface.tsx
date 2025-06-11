@@ -75,23 +75,18 @@ export default function ChatInterface({
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      // Use setTimeout to ensure DOM is updated before scrolling
       setTimeout(() => {
-        if (chatContainerRef.current) {
-          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-        }
+        chatContainerRef.current!.scrollTop = chatContainerRef.current!.scrollHeight;
       }, 100);
     }
   }, [messages, options]);
 
-  // Additional scroll trigger for when typing animation completes
   useEffect(() => {
     const timer = setTimeout(() => {
       if (chatContainerRef.current) {
         chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
       }
-    }, 1600); // After typing animation completes
-
+    }, 1600);
     return () => clearTimeout(timer);
   }, [messages.length]);
 
@@ -131,24 +126,22 @@ export default function ChatInterface({
       >
         <div className="space-y-3">
           {messages.map((message, index) => (
-            <ChatMessage
-              key={index}
-              message={message.text}
-              type={message.type}
-              isTyping={message.isTyping}
-              primaryColor={primaryColor}
-            />
+            <div key={index}>
+              {message.type === "analysis" && message.data ? (
+                <AnalysisResults analysis={message.data} className="animate-fadeIn" />
+              ) : (
+                <ChatMessage
+                  message={message.text}
+                  type={message.type}
+                  isTyping={message.isTyping}
+                  primaryColor={primaryColor}
+                />
+              )}
+            </div>
           ))}
 
           {options && options.length > 0 && (
             <ChatOptions options={options} onSelect={handleOptionSelect} primaryColor={primaryColor} />
-          )}
-
-          {currentData?.footAnalysis &&
-            (currentStep === "image_analysis_results" || currentStep === "image_analysis_confirmation") && (
-              <div className="mt-4">
-                <AnalysisResults analysis={currentData.footAnalysis} className="animate-fadeIn" />
-              </div>
           )}
         </div>
       </div>
@@ -171,10 +164,6 @@ export default function ChatInterface({
           />
         )}
       </div>
-
-      {currentStep === "image_analysis_results" && currentData?.footAnalysis && (
-        <AnalysisResults analysis={currentData.footAnalysis} />
-      )}
 
       {currentStep === "calendar_booking" && (
         <CalendarEmbed 
