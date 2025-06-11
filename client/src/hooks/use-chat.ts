@@ -5,7 +5,7 @@ import {
   phoneSchema,
   emailSchema,
   insertConsultationSchema
-} from "@/shared/schema";
+} from "../../../shared/schema";
 
 interface Message {
   text: string;
