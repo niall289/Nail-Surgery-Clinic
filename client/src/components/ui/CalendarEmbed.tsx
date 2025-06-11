@@ -33,13 +33,16 @@ export function CalendarEmbed({ onBookingComplete, primaryColor = "hsl(186, 100%
 
       <div className="relative bg-white rounded-lg shadow-lg overflow-hidden">
         <iframe
-          src="https://footcareclinic.cliniko.com/bookings"
+          src="https://footcareclinic.cliniko.com/bookings?embed=true"
           style={{ border: 0 }}
           width="100%"
           height="600"
           frameBorder="0"
           scrolling="yes"
           title="FootCare Clinic - Book Appointment"
+          onError={() => {
+            console.log("Iframe failed to load, showing fallback");
+          }}
         />
 
         {isLoading && (
@@ -50,6 +53,14 @@ export function CalendarEmbed({ onBookingComplete, primaryColor = "hsl(186, 100%
             </div>
           </div>
         )}
+        
+        <div className="p-4 bg-gray-50 border-t">
+          <p className="text-sm text-gray-600 text-center">
+            Having trouble with online booking? 
+            <br />
+            Call us directly at <strong>089 9678596</strong> or email <strong>info@footcareclinic.ie</strong>
+          </p>
+        </div>
       </div>
 
       <div className="flex justify-center pt-4 border-t border-gray-200">
