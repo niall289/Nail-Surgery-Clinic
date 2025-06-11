@@ -214,7 +214,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       setShowImageUpload(false);
       setIsWaitingForResponse(false);
     }
-  }, [onImageUpload, consultationId, currentStep, chatFlow, addMessage, setUserData, processStep])p]);
+  }, [onImageUpload, consultationId, currentStep, chatFlow, addMessage, setUserData, processStep]);
 
   const handleSymptomAnalysis = useCallback(async (symptoms: string) => {
     setIsWaitingForResponse(true);
