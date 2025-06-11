@@ -18,7 +18,7 @@ export default function ChatMessage({
 }: ChatMessageProps) {
   // Ensure message has proper content - handle both string and object formats
   let messageContent = '';
-  
+
   if (typeof message === 'string') {
     messageContent = message;
   } else if (message && typeof message === 'object') {
