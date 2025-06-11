@@ -85,24 +85,39 @@ export async function analyzeFootImage(imageBase64: string): Promise<any> {
 
     // Try to parse JSON response, fallback to text parsing
     try {
-      const parsed = JSON.parse(analysis);
+      // Clean up the response - remove markdown code blocks if present
+      const cleanedAnalysis = analysis.replace(/```json\n?|\n?```/g, '').trim();
+      const parsed = JSON.parse(cleanedAnalysis);
+      
       return {
         condition: parsed.condition || "Analysis completed",
-        severity: parsed.severity || "unknown",
-        recommendations: parsed.recommendations || ["Visit the clinic for assessment"],
-        disclaimer: parsed.disclaimer || "Please consult a healthcare professional for proper diagnosis"
+        severity: parsed.severity || "mild",
+        recommendations: Array.isArray(parsed.recommendations) ? parsed.recommendations : ["Visit the clinic for assessment"],
+        disclaimer: "This is an AI-assisted preliminary assessment only. Please consult with a qualified healthcare professional for proper diagnosis and treatment."
       };
     } catch (parseError) {
-      console.log('JSON parse failed, using text analysis');
+      console.log('JSON parse failed, attempting to extract information from text');
+      
+      // Try to extract structured information from the text response
+      const conditionMatch = analysis.match(/"condition":\s*"([^"]+)"/);
+      const severityMatch = analysis.match(/"severity":\s*"([^"]+)"/);
+      const recommendationsMatch = analysis.match(/"recommendations":\s*\[(.*?)\]/s);
+      
+      let recommendations = ["Visit the clinic for professional assessment"];
+      if (recommendationsMatch) {
+        try {
+          const recArray = JSON.parse(`[${recommendationsMatch[1]}]`);
+          recommendations = recArray.filter(r => typeof r === 'string');
+        } catch (e) {
+          console.log('Failed to parse recommendations from text');
+        }
+      }
+      
       return {
-        condition: "Image analysis completed",
-        severity: "unknown",
-        recommendations: [
-          "Based on the image analysis",
-          "Please describe additional symptoms",
-          "Visit the clinic for professional assessment"
-        ],
-        disclaimer: analysis
+        condition: conditionMatch ? conditionMatch[1] : "Foot condition identified",
+        severity: severityMatch ? severityMatch[1] : "moderate",
+        recommendations: recommendations,
+        disclaimer: "This is an AI-assisted preliminary assessment only. Please consult with a qualified healthcare professional for proper diagnosis and treatment."
       };
     }
 

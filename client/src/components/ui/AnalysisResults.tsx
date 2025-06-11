@@ -27,7 +27,8 @@ interface AnalysisResultsProps {
 export default function AnalysisResults({ analysis, className }: AnalysisResultsProps) {
   // Determine if this is an actual analysis or a fallback
   const isFallback = analysis.condition === "Unable to analyze image at this time" || 
-                    analysis.severity === "unknown";
+                    analysis.severity === "unknown" ||
+                    analysis.condition === "Image analysis completed";
 
   // Determine severity badge color
   const severityColor = () => {
@@ -81,7 +82,8 @@ export default function AnalysisResults({ analysis, className }: AnalysisResults
         <div>
           <h4 className="text-sm font-medium text-gray-500 mb-1">Apparent Severity</h4>
           <Badge className={severityColor()}>
-            {analysis.severity === 'unknown' ? 'Undetermined' : analysis.severity}
+            {analysis.severity === 'unknown' ? 'Undetermined' : 
+             analysis.severity.charAt(0).toUpperCase() + analysis.severity.slice(1)}
           </Badge>
         </div>
 
