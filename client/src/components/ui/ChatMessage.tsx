@@ -18,7 +18,7 @@ export default function ChatMessage({
 }: ChatMessageProps) {
   // Ensure message has proper content
   const messageContent = message?.content || message?.text || '';
-  
+
   if (!messageContent && !isTyping) {
     return null; // Don't render empty messages
   }
@@ -50,7 +50,23 @@ export default function ChatMessage({
               <span className="h-2 w-2 bg-gray-400 rounded-full animate-pulse delay-300"></span>
             </div>
           ) : (
-            <p className="text-sm text-gray-700 leading-relaxed">{message}</p>
+            <div className="whitespace-pre-wrap leading-relaxed">
+              {messageContent && messageContent.split('\n').map((line, index) => (
+                <p key={index} className="mb-2 last:mb-0">
+                  {line.split('**').map((part, partIndex) => {
+                    if (partIndex % 2 === 1) {
+                      return <strong key={partIndex}>{part}</strong>;
+                    }
+                    return part.split('*').map((subPart, subIndex) => {
+                      if (subIndex % 2 === 1) {
+                        return <em key={subIndex}>{subPart}</em>;
+                      }
+                      return subPart;
+                    });
+                  })}
+                </p>
+              )) || <p>Message content unavailable</p>}
+            </div>
           )}
         </div>
       </div>
