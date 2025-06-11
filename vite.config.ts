@@ -35,7 +35,8 @@ export default defineConfig({
     port: 5173,
     host: true,
     allowedHosts: [
-      "c16b3eaf-2dc7-4318-9492-81b2d78892e6-00-33cjkltnkrj51.kirk.replit.dev"
+      "c16b3eaf-2dc7-4318-9492-81b2d78892e6-00-33cjkltnkrj51.kirk.replit.dev",
+      "74a5c1c6-354f-49ed-a2f9-4221388929da-00-d532ej2acf3p.picard.replit.dev"
     ]
   },
 });
