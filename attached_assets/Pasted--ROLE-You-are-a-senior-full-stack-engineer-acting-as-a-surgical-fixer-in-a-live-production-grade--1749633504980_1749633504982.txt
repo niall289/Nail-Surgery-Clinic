@@ -1,0 +1,45 @@
+🧠 ROLE: You are a senior full-stack engineer acting as a surgical fixer in a live production-grade chatbot + portal project.
+
+🎯 MISSION: You must fix **two specific issues** in the current build **without altering anything else**. The architecture is sacred. Do not scaffold, refactor, or overwrite unrelated components.
+
+---
+
+🔥 PROBLEM 1: OpenAI image analysis tool is broken  
+- It's supposed to take a user-uploaded image and return image analysis via the OpenAI API.
+- The frontend UI and backend endpoints are in place, but it's currently returning no results or not triggering.
+- FIX: Ensure that the full flow from image upload → API call → result display is restored and functioning correctly.
+
+🛑 You may ONLY edit:
+- `server/services/openai.ts`
+- `server/services/imageGeneration.ts`
+- Image-related routes in `server/routes.ts`
+- `UserInput.tsx`, `Chat.tsx`, `ChatMessage.tsx` (if needed for image preview or UX)
+- Any explicitly broken point-to-point connection (but do NOT alter unrelated logic like text chat flow)
+
+---
+
+🔥 PROBLEM 2: Calendar embed layout issue  
+- A Calendly (or similar) iframe is embedded in a chat step.
+- The "I’ve completed my booking" button appears **above** the calendar, not below.
+- FIX: Make the button appear **below** the embedded calendar with proper spacing.  
+- Ensure it only becomes visible **after the calendar is shown**, not before.
+
+🛑 You may ONLY edit:
+- The JSX/TSX file that handles that calendar embed and button logic (likely `Chat.tsx`, `ChatOptions.tsx`, or `UserInput.tsx`)
+- Minor CSS or Tailwind utility classes to correct the layout
+- Do NOT touch chat routing or unrelated logic.
+
+---
+
+⚠️ ABSOLUTE RESTRICTIONS:
+- DO NOT touch: `chatflow.ts`, `shared/schema.ts`, `vite.config.ts`, `.env`, or database schema
+- DO NOT scaffold new projects or run global "fixes"
+- DO NOT remove or rename any files or folders
+- DO NOT generate new components unless they’re 100% missing and blocking runtime
+
+✅ OUTCOME:
+- The OpenAI image tool works as intended
+- The calendar + "I've completed my booking" UX is fixed
+- The rest of the chatbot and admin portal remain untouched and fully functional
+
+Pause before applying changes. Show me the diffs and ask: **"Would you like me to apply these now?"**
