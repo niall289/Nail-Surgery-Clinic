@@ -32,5 +32,8 @@ export default defineConfig({
   server: {
     port: 5000,
     host: true,
+    allowedHosts: [
+      "c16b3eaf-2dc7-4318-9492-81b2d78892e6-00-33cjkltnkrj51.kirk.replit.dev"
+    ]
   },
 });

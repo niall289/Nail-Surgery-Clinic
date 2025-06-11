@@ -56,9 +56,9 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Serve the app on available port (required for Replit)
-  const port = process.env.PORT || 5000;
+  // Serve the app on a different port to avoid Vite conflict
+  const port = 5001; // Manually assign a port Express can use
   server.listen(port, "0.0.0.0", () => {
-    log(`serving on port ${port}`);
+    log(`Express server running on port ${port}`);
   });
-})();
+})(); 
