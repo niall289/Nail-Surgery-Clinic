@@ -90,9 +90,17 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
     setMessages(prev => prev.map(m => ({ ...m, isTyping: false })));
     setCurrentStep(stepId);
 
+    // Resolve message content - handle both string and function messages
+    let messageText = '';
+    if (typeof step.message === 'function') {
+      messageText = step.message(userData);
+    } else {
+      messageText = step.message || '';
+    }
+
     if (stepId === "image_analysis_results" && userData.footAnalysis) {
       const analysis = userData.footAnalysis;
-      addMessage(step.message, "bot", true);
+      addMessage(messageText, "bot", true);
       setTimeout(() => {
         setMessages(prev => prev.map(m => ({ ...m, isTyping: false })));
         addMessage(`Based on my analysis, it appears you may have ${analysis.condition} (${analysis.severity} severity).\n\nRecommendations:\n${analysis.recommendations.map((r: string) => `• ${r}`).join("\n")}\n\n${analysis.disclaimer}`, "bot");
@@ -103,7 +111,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
 
     if (stepId === "symptom_analysis_results" && userData.symptomAnalysisResults) {
       const analysis = userData.symptomAnalysisResults;
-      addMessage(step.message, "bot", true);
+      addMessage(messageText, "bot", true);
       setTimeout(() => {
         setMessages(prev => prev.map(m => ({ ...m, isTyping: false })));
         addMessage(`Based on your symptoms, you may have ${analysis.potentialConditions.join(", ")} (${analysis.severity} severity, ${analysis.urgency} priority).\n\n${analysis.recommendation}\n\nNext steps:\n${analysis.nextSteps.map((s: string) => `• ${s}`).join("\n")}\n\n${analysis.disclaimer}`, "bot");
@@ -112,7 +120,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       return;
     }
 
-    addMessage(step.message, "bot", true);
+    addMessage(messageText, "bot", true);
     setTimeout(() => {
       setMessages(prev => prev.map(m => ({ ...m, isTyping: false })));
       if (step.end) {
@@ -122,7 +130,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       }
       step.delay ? setTimeout(() => setupStepInput(step), step.delay) : setupStepInput(step);
     }, 1500);
-  }, [setupStepInput, userData]);
+  }, [setupStepInput, userData, addMessage]);
 
   useEffect(() => { processStepRef.current = processStep; }, [processStep]);
   useEffect(() => { if (messages.length === 0) processStep("welcome"); }, []);

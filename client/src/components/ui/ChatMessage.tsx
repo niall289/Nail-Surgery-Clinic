@@ -16,8 +16,14 @@ export default function ChatMessage({
   isTyping = false,
   primaryColor = DEFAULT_PRIMARY_COLOR
 }: ChatMessageProps) {
-  // Ensure message has proper content
-  const messageContent = message?.content || message?.text || '';
+  // Ensure message has proper content - handle both string and object formats
+  let messageContent = '';
+  
+  if (typeof message === 'string') {
+    messageContent = message;
+  } else if (message && typeof message === 'object') {
+    messageContent = message.content || message.text || '';
+  }
 
   if (!messageContent && !isTyping) {
     return null; // Don't render empty messages
@@ -51,7 +57,7 @@ export default function ChatMessage({
             </div>
           ) : (
             <div className="whitespace-pre-wrap leading-relaxed">
-              {messageContent && messageContent.split('\n').map((line, index) => (
+              {messageContent ? messageContent.split('\n').map((line, index) => (
                 <p key={index} className="mb-2 last:mb-0">
                   {line.split('**').map((part, partIndex) => {
                     if (partIndex % 2 === 1) {
@@ -65,7 +71,7 @@ export default function ChatMessage({
                     });
                   })}
                 </p>
-              )) || <p>Message content unavailable</p>}
+              )) : <p>Message content unavailable</p>}
             </div>
           )}
         </div>
@@ -80,11 +86,11 @@ export default function ChatMessage({
         className="mr-2 text-white rounded-xl py-3 px-4 max-w-[75%] shadow-md" // Rounded corners, shadow, padding
         style={{ backgroundColor: primaryColor }}
       >
-        {messageContent.split('\n').map((line, index) => (
+        {messageContent ? messageContent.split('\n').map((line, index) => (
           <p key={index} className="mb-1 last:mb-0">
             {line || '\u00A0'}
           </p>
-        ))}
+        )) : <p>Message content unavailable</p>}
       </div>
       <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
         <svg 
