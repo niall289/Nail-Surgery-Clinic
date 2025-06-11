@@ -88,10 +88,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }, TIMEOUT_MS);
 
     try {
+      console.log('Processing image analysis request...');
       const { imageBase64, consultationId } = req.body;
-      if (!imageBase64) throw new Error("Missing imageBase64");
-
+      
+      if (!imageBase64) {
+        console.error("No imageBase64 in request body");
+        throw new Error("Missing imageBase64");
+      }
+      
+      console.log('Image data received, length:', imageBase64.length);
       const cleanImage = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+      console.log('Cleaned image data, calling analyzeFootImage...');
+      
       const analysis = await analyzeFootImage(cleanImage);
 
       if (consultationId && !isNaN(parseInt(consultationId))) {

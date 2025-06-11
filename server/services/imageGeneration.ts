@@ -2,10 +2,11 @@ import OpenAI from "openai";
 import fs from "fs";
 import path from "path";
 
-let openai: OpenAI | null = null;
+// Use a separate client for image generation to avoid conflicts
+let imageGenClient: OpenAI | null = null;
 
 if (process.env.OPENAI_API_KEY) {
-  openai = new OpenAI({
+  imageGenClient = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
 } else {
@@ -27,8 +28,8 @@ export async function generateNurseImage(): Promise<string> {
     return imageBuffer.toString("base64");
   }
 
-  if (!openai) {
-    console.warn("OpenAI client not initialized. Attempting to use fallback asset image.");
+  if (!imageGenClient) {
+    console.warn("OpenAI image generation client not initialized. Attempting to use fallback asset image.");
     if (fs.existsSync(assetsCachePath)) {
         console.log("Using fallback nurse image from client/public/assets/images/nurse-fiona.png");
         const imageBuffer = fs.readFileSync(assetsCachePath);
@@ -40,7 +41,7 @@ export async function generateNurseImage(): Promise<string> {
   try {
     // Generate a new image if not cached and OpenAI client is available
     console.log("Generating new nurse image with DALL-E");
-    const response = await openai.images.generate({
+    const response = await imageGenClient.images.generate({
       model: "dall-e-3",
       prompt: "A friendly Irish female nurse with red hair, professional uniform with a teal accent, warm smile, against a white background. Realistic headshot portrait with a gentle, trustworthy expression. Digital illustration style, simple clean background.",
       n: 1,

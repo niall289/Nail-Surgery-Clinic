@@ -22,9 +22,25 @@ export async function analyzeFootImage(imageBase64: string): Promise<any> {
       };
     }
 
-    // Remove data URL prefix if present
+    // Remove data URL prefix if present and validate
     const cleanBase64 = imageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
-    console.log('Image cleaned, sending to OpenAI...');
+    console.log('Image cleaned, base64 length:', cleanBase64.length);
+    
+    if (cleanBase64.length < 100) {
+      console.error('Base64 string too short, likely invalid');
+      return {
+        condition: "Invalid image data",
+        severity: "unknown",
+        recommendations: [
+          "Please try uploading the image again",
+          "Ensure the image is clear and properly formatted",
+          "Continue with describing your symptoms"
+        ],
+        disclaimer: "Unable to process the uploaded image"
+      };
+    }
+    
+    console.log('Sending to OpenAI vision API...');
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
