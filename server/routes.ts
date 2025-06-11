@@ -202,6 +202,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Image analysis route
+  app.post('/api/analyze-foot-image', async (req, res) => {
+    try {
+      console.log('Image analysis request received');
+      const { image } = req.body;
+
+      if (!image) {
+        console.error('No image provided in request');
+        return res.status(400).json({ error: 'No image provided' });
+      }
+
+      console.log('Analyzing image with OpenAI...');
+      const analysis = await analyzeFootImage(image);
+      console.log('Analysis complete:', analysis.substring(0, 100) + '...');
+
+      res.json({ analysis });
+    } catch (error) {
+      console.error('Image analysis error:', error);
+      res.status(500).json({ 
+        error: 'Failed to analyze image',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Add other routes here as needed
+
   const server = createServer(app);
   return server;
 }
