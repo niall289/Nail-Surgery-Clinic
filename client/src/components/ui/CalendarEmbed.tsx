@@ -10,10 +10,9 @@ export function CalendarEmbed({ onBookingComplete, primaryColor = "hsl(186, 100%
   const [isLoading, setIsLoading] = useState(false);
 
   const handleBookingComplete = () => {
-    setIsLoading(true);
-    setTimeout(() => {
+    if (onBookingComplete) {
       onBookingComplete();
-    }, 1000);
+    }
   };
 
   return (

@@ -175,7 +175,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
         try {
           const base64String = reader.result as string;
 
-          const apiUrl = import.meta.env.VITE_API_URL || 'http://0.0.0.0:5000';
+          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
           const fullUrl = `${apiUrl}/api/analyze-foot-image`;
 
           console.log("Sending image analysis request to:", fullUrl);
@@ -252,7 +252,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
     setIsWaitingForResponse(true);
     try {
       addMessage("Analyzing your symptoms...", "bot");
-      const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin);
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await fetch(`${apiUrl}/api/analyze-symptoms`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -436,6 +436,9 @@ import { z } from "zod";
         calendar_booking: {
           message: "",
           component: "CalendarEmbed",
+          options: [
+            { text: "✅ I've completed my booking", value: "booked" }
+          ],
           next: "booking_confirmation"
         },
         booking_confirmation: {

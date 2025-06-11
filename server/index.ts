@@ -57,8 +57,8 @@ app.use((req, res, next) => {
   }
 
   // Use an available port that doesn't conflict with Vite
-  const port = process.env.PORT || 5000;
+  const port = parseInt(process.env.PORT || "5000");
   server.listen(port, "0.0.0.0", () => {
     log(`Express server running on port ${port}`);
   });
-})(); 
+})();
