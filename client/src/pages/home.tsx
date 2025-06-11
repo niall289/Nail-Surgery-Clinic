@@ -10,7 +10,7 @@ export default function Home() {
           <div className="text-center mb-6">
             <div className="h-28 mx-auto flex items-center justify-center mb-4">
               <img 
-                src="/images/footcare-clinic-logo.png" 
+                src="/assets/images/logo.png" 
                 alt="FootCare Clinic Logo" 
                 className="h-full" 
               />
