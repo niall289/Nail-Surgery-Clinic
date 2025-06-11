@@ -196,6 +196,11 @@ export const insertChatbotSettingsSchema = createInsertSchema(chatbotSettings, {
 });
 export const insertConsultationSchema = createInsertSchema(consultations);
 
+// Individual field validation schemas
+export const nameSchema = z.string().min(2, "Name must be at least 2 characters");
+export const phoneSchema = z.string().regex(/^[\+]?[0-9\s\-\(\)]{10,}$/, "Invalid phone number");
+export const emailSchema = z.string().email("Invalid email address");
+
 // Types
 export type InsertPatient = z.infer<typeof insertPatientSchema>;
 export type InsertAssessment = z.infer<typeof insertAssessmentSchema>;
