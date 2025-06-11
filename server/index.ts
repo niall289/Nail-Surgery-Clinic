@@ -56,8 +56,8 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Serve the app on a different port to avoid Vite conflict
-  const port = 5001; // Manually assign a port Express can use
+  // Use an available port that doesn't conflict with Vite
+  const port = process.env.PORT || 5002;
   server.listen(port, "0.0.0.0", () => {
     log(`Express server running on port ${port}`);
   });
