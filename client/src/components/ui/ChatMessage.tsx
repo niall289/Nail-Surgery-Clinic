@@ -53,11 +53,11 @@ const ChatMessage: FC<ChatMessageProps> = ({ message, type, isTyping = false, pr
         className="mr-2 text-white rounded-xl py-3 px-4 max-w-[75%] shadow-md" // Rounded corners, shadow, padding
         style={{ backgroundColor: primaryColor }}
       >
-        {message.content.split('\n').map((line, index) => (
-              <p key={index} className="mb-1 last:mb-0">
-                {line || '\u00A0'}
-              </p>
-            ))}
+        {(message.content || message.text || '').split('\n').map((line, index) => (
+            <p key={index} className="mb-1 last:mb-0">
+              {line || '\u00A0'}
+            </p>
+          ))}
       </div>
       <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
         <svg 
