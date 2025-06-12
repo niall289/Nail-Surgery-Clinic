@@ -22,6 +22,8 @@ export async function analyzeFootImage(imageBase64: string): Promise<any> {
       };
     }
 
+    console.log('OpenAI API key found, length:', process.env.OPENAI_API_KEY.length);
+
     const cleanBase64 = imageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
     console.log('Image cleaned, base64 length:', cleanBase64.length);
 
@@ -72,10 +74,13 @@ IMPORTANT: Respond ONLY with JSON. Do not include any explanation, markdown, or 
       temperature: 0.2,
     });
 
+    console.log("OpenAI response object:", JSON.stringify(response, null, 2));
     const analysis = response.choices[0]?.message?.content?.trim();
     console.log("Full response from OpenAI:", analysis);
 
     if (!analysis) {
+      console.error("OpenAI returned empty content");
+      console.error("Response choices:", response.choices);
       throw new Error("No content returned from OpenAI");
     }
 
