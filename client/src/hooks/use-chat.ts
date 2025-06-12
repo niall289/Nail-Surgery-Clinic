@@ -29,6 +29,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [userData, setUserData] = useState<Record<string, any>>({});
   const [conversationLog, setConversationLog] = useState<{step: string, response: string}[]>([]);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const addMessage = useCallback((text: string, type: "bot" | "user", isTyping = false) => {
     setMessages(prev => [...prev, { text, type, isTyping }]);
@@ -36,22 +37,55 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
 
   const processStepRef = useRef<(stepId: string) => void>(() => {});
 
-  const sendToAdminPortal = useCallback(async (conversationData: Record<string, any>) => {
+  const submitFinalConsultation = useCallback(async (conversationData: Record<string, any>) => {
+    // Prevent multiple submissions
+    if (hasSubmitted) {
+      console.log("⚠️ Consultation already submitted, skipping");
+      return;
+    }
+
+    // Only submit when we have complete required data
+    if (!conversationData.name || !conversationData.email || !conversationData.phone) {
+      console.log("⏳ Skipping submission - missing required fields (name, email, phone)");
+      return;
+    }
+
     try {
-      console.log("🚀 Sending data to webhook:", "https://footcareclinicadmin.engageiobots.com/api/webhook/consultation");
-      console.log("📦 Webhook payload:", conversationData);
+      console.log("🚀 Submitting final consultation to webhook");
       
-      // Only send to external server when we have complete data
-      if (!conversationData.email || !conversationData.phone) {
-        console.log("⏳ Skipping external webhook - incomplete data (missing email/phone)");
-        return;
-      }
+      // Prepare complete payload matching schema
+      const payload = {
+        name: conversationData.name || "",
+        email: conversationData.email || "",
+        phone: conversationData.phone || "",
+        preferred_clinic: conversationData.preferred_clinic || "",
+        issue_category: conversationData.issue_category || "",
+        issue_specifics: conversationData.issue_specifics || "",
+        symptom_description: conversationData.symptom_description || "",
+        previous_treatment: conversationData.previous_treatment || "",
+        has_image: conversationData.has_image || "no",
+        image_path: conversationData.image_path || "",
+        image_analysis: conversationData.image_analysis || "",
+        calendar_booking: conversationData.calendar_booking || "",
+        booking_confirmation: conversationData.booking_confirmation || "",
+        final_question: conversationData.final_question || "",
+        additional_help: conversationData.additional_help || "",
+        emoji_survey: conversationData.emoji_survey || "",
+        survey_response: conversationData.survey_response || "",
+        conversation_log: Array.isArray(conversationData.conversationLog) ? conversationData.conversationLog : [],
+        completed_steps: Array.isArray(conversationData.completed_steps) ? conversationData.completed_steps : [],
+        consultationId: consultationId
+      };
+
+      console.log("📦 Payload being sent:", payload);
       
-      const validated = insertConsultationSchema.safeParse(conversationData);
+      const validated = insertConsultationSchema.safeParse(payload);
       if (!validated.success) {
         console.error("❌ Validation failed:", validated.error);
         return;
       }
+      
+      setHasSubmitted(true);
       
       const response = await fetch("/api/webhook-proxy", {
         method: "POST",
@@ -60,14 +94,16 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       });
       
       if (response.ok) {
-        console.log("✅ Webhook success:", response.status, response.statusText);
+        console.log("✅ Final consultation submitted successfully:", response.status, response.statusText);
       } else {
-        console.error("❌ Failed to send to portal:", response.status, response.statusText);
+        console.error("❌ Failed to submit consultation:", response.status, response.statusText);
+        setHasSubmitted(false); // Reset on failure to allow retry
       }
     } catch (err) {
-      console.error("❌ Error syncing to portal:", err);
+      console.error("❌ Error submitting consultation:", err);
+      setHasSubmitted(false); // Reset on failure to allow retry
     }
-  }, []);
+  }, [hasSubmitted, consultationId]);
 
   const updateUserData = useCallback((step: string, value: string, displayValue: string) => {
     const field = chatStepToField[step];
@@ -76,11 +112,16 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
     const updatedLog = [...conversationLog, { step, response: value }];
     setConversationLog(updatedLog);
     setUserData(updatedData);
+    
+    // Save data locally
     onSaveData({ ...updatedData, consultationId, conversationLog: updatedLog }, false);
     
-    // Send all conversations to external webhook portal
-    sendToAdminPortal({ ...updatedData, consultationId, conversationLog: updatedLog });
-  }, [userData, conversationLog, onSaveData, consultationId, sendToAdminPortal]);
+    // Check if this is a completion step that should trigger final submission
+    const completionSteps = ['survey_response', 'additional_help', 'final_question'];
+    if (completionSteps.includes(step)) {
+      submitFinalConsultation({ ...updatedData, consultationId, conversationLog: updatedLog });
+    }
+  }, [userData, conversationLog, onSaveData, consultationId, submitFinalConsultation]);
 
   const setupStepInput = useCallback((step: any) => {
     setShowImageUpload(!!step.imageUpload);
