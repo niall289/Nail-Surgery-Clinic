@@ -56,8 +56,8 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use an available port that doesn't conflict with Vite
-  const port = parseInt(process.env.PORT || "3001");
+  // Use port 5000 which is configured for external access
+  const port = parseInt(process.env.PORT || "5000");
   server.listen(port, "0.0.0.0", () => {
     log(`Express server running on port ${port}`);
   });
