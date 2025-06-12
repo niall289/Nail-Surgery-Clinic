@@ -47,12 +47,14 @@ export default function AnalysisResults({ analysis, className }: AnalysisResults
   };
 
   return (
-    <Card className={cn("w-full bg-white shadow-sm border-l-4", 
-      isFallback ? "border-l-gray-400" : 
-      analysis.severity.toLowerCase() === 'mild' ? "border-l-green-500" : 
-      analysis.severity.toLowerCase() === 'moderate' ? "border-l-yellow-500" : 
-      analysis.severity.toLowerCase() === 'severe' ? "border-l-red-500" : "border-l-primary",
-      className)}
+    <Card 
+      data-analysis-card
+      className={cn("w-full bg-white shadow-sm border-l-4", 
+        isFallback ? "border-l-gray-400" : 
+        analysis.severity.toLowerCase() === 'mild' ? "border-l-green-500" : 
+        analysis.severity.toLowerCase() === 'moderate' ? "border-l-yellow-500" : 
+        analysis.severity.toLowerCase() === 'severe' ? "border-l-red-500" : "border-l-primary",
+        className)}
     >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">

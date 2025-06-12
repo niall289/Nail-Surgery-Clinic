@@ -76,7 +76,25 @@ export default function ChatInterface({
   useEffect(() => {
     if (chatContainerRef.current) {
       setTimeout(() => {
-        chatContainerRef.current!.scrollTop = chatContainerRef.current!.scrollHeight;
+        const lastMessage = messages[messages.length - 1];
+        
+        // If the last message is an analysis card, scroll to show its top
+        if (lastMessage && lastMessage.type === "analysis") {
+          const analysisElements = chatContainerRef.current!.querySelectorAll('[data-analysis-card]');
+          const lastAnalysisCard = analysisElements[analysisElements.length - 1] as HTMLElement;
+          
+          if (lastAnalysisCard) {
+            // Scroll to show the top of the analysis card with some padding
+            const cardTop = lastAnalysisCard.offsetTop;
+            const containerHeight = chatContainerRef.current!.clientHeight;
+            const scrollPosition = Math.max(0, cardTop - 20); // 20px padding from top
+            
+            chatContainerRef.current!.scrollTop = scrollPosition;
+          }
+        } else {
+          // Default behavior: scroll to bottom
+          chatContainerRef.current!.scrollTop = chatContainerRef.current!.scrollHeight;
+        }
       }, 100);
     }
   }, [messages, options]);
