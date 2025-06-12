@@ -51,15 +51,21 @@ export async function analyzeFootImage(imageBase64: string): Promise<any> {
           content: [
             {
               type: "text",
-              text: `As an educational foot care assessment tool, analyze this foot image and provide an educational assessment. Return ONLY valid JSON in this exact format:
+              text: `You are an AI podiatrist assistant analyzing foot conditions. Examine this foot image and provide a clinical assessment. Return ONLY valid JSON in this exact format:
 {
-  "condition": "educational assessment of visible characteristics",
-  "severity": "mild | moderate | severe", 
-  "recommendations": ["foot care education", "general care advice", "professional consultation recommendation"],
-  "disclaimer": "This is an educational assessment for informational purposes only. Not a medical diagnosis."
+  "condition": "specific condition name and clinical description",
+  "severity": "mild | moderate | severe",
+  "recommendations": ["specific treatment advice", "care instructions", "professional follow-up guidance"],
+  "disclaimer": "This assessment is provided for informational purposes. Please consult a qualified podiatrist for treatment."
 }
 
-Provide an educational assessment of common foot conditions that might present with these visual characteristics. Focus on foot care education. Respond ONLY with JSON, no additional text.`
+Provide specific podiatric recommendations including:
+- Immediate care steps
+- Treatment options (topical medications, proper nail cutting techniques, etc.)
+- When to seek professional care
+- Preventive measures
+
+Focus on actionable medical advice for foot conditions. Respond ONLY with JSON, no additional text.`
             },
             {
               type: "image_url",
