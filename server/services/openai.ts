@@ -49,58 +49,58 @@ export async function analyzeFootImage(imageBase64: string): Promise<any> {
           content: [
             {
               type: "text",
-              text: `You are a foot care specialist analyzing a foot image. Please analyze this image and provide:
-              1. The most likely condition based on what you observe
-              2. Severity level (mild, moderate, severe)
-              3. 2-3 specific recommendations
-              4. A professional disclaimer
-
-              Return your response as JSON with these exact fields:
-              - condition: string (name of the condition)
-              - severity: string (mild, moderate, or severe)
-              - recommendations: array of strings
-              - disclaimer: string
-
-              Be specific about what you observe in the image.`
+              text: `You are a professional podiatrist AI. Analyze the foot image and return ONLY valid JSON. 
+Format: {
+  "condition": "string",
+  "severity": "mild | moderate | severe",
+  "recommendations": ["string", "string", "string"],
+  "disclaimer": "string"
+}
+IMPORTANT: Respond ONLY with JSON. Do not include any explanation, markdown, or extra text.`
             },
             {
               type: "image_url",
               image_url: {
-                url: `data:image/jpeg;base64,${cleanBase64}`
+                url: `data:image/jpeg;base64,${cleanBase64}`,
+                detail: "high"
               }
             }
           ]
         }
       ],
-      response_format: { type: "json_object" },
-      max_tokens: 1000,
+      max_tokens: 400,
+      temperature: 0.2,
     });
 
-    console.log('OpenAI response received:', response.choices[0].message.content);
+    const analysis = response.choices[0]?.message?.content?.trim();
+    console.log("Full response from OpenAI:", analysis);
 
-    const content = response.choices[0].message.content;
-    if (!content) {
-      throw new Error('No content in OpenAI response');
+    if (!analysis) {
+      throw new Error("No content returned from OpenAI");
     }
 
     try {
-      const parsed = JSON.parse(content);
-      console.log('Parsed analysis:', parsed);
-      
-      // Validate the response has required fields
-      if (!parsed.condition || !parsed.severity || !parsed.recommendations) {
-        throw new Error('Missing required fields in OpenAI response');
-      }
+      const cleaned = analysis.replace(/```json\n?|```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
 
       return {
-        condition: parsed.condition,
-        severity: parsed.severity,
-        recommendations: Array.isArray(parsed.recommendations) ? parsed.recommendations : ["Visit a clinic for assessment"],
+        condition: parsed.condition || "Unknown condition",
+        severity: parsed.severity || "unknown",
+        recommendations: parsed.recommendations || ["Visit a clinic for further assessment"],
         disclaimer: parsed.disclaimer || "This is a preliminary AI assessment. Please consult a qualified healthcare provider."
       };
     } catch (parseError) {
-      console.error("JSON parse failed:", parseError, "Content:", content);
-      throw new Error('Failed to parse OpenAI response as JSON');
+      console.error("JSON parse failed:", parseError);
+      return {
+        condition: "Unable to parse image analysis",
+        severity: "unknown",
+        recommendations: [
+          "Please describe your symptoms instead",
+          "Continue with the consultation",
+          "Visit the clinic for assessment"
+        ],
+        disclaimer: "OpenAI response was not valid JSON. This is a fallback message."
+      };
     }
 
   } catch (error) {
