@@ -537,12 +537,12 @@ import { z } from "zod";
         }
       };
 
-      export const chatStepToField: Record<string, string> = {
+      export const chatStepToField: { [key: string]: string } = {
         // Basic info
         name: "name",
         phone: "phone", 
         email: "email",
-        clinic_location: "preferredClinic",
+        clinic_location: "preferred_clinic",
 
         // Image upload
         upload_prompt: "hasImage",
@@ -551,7 +551,7 @@ import { z } from "zod";
         image_analysis_results: "imageAnalysisResults",
 
         // Main issue categorization
-        issue_category: "issueCategory",
+        issue_category: "issue_category",
 
         // Nail specifics
         nail_specifics: "nailSpecifics",
@@ -583,24 +583,24 @@ import { z } from "zod";
 
         // Symptom description
         symptom_description_prompt: "symptomDescriptionPrompt",
-        symptom_description: "symptomDescription",
+        symptom_description: "symptom_description",
 
         // Treatment history
-        previous_treatment: "previousTreatment",
+        previous_treatment: "previous_treatment",
 
         // Booking and confirmation
-        calendar_booking: "calendarBooking",
-        booking_confirmation: "bookingConfirmation",
+        calendar_booking: "calendar_booking",
+        booking_confirmation: "booking_confirmation",
 
         // Additional help and questions
-        final_question: "finalQuestion",
+        final_question: "final_question",
         pricing_info: "pricingInfo",
-        additional_help: "userInput",
+        additional_help: "additional_help",
         help_response: "helpResponse",
 
         // Survey and feedback
-        emoji_survey: "emojiSurvey",
-        survey_response: "surveyResponse",
+        emoji_survey: "emoji_survey",
+        survey_response: "survey_response",
 
         // Legacy mappings for backwards compatibility
         service_selection: "issueCategory",

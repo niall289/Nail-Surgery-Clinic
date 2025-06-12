@@ -43,7 +43,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
         console.error("Validation failed:", validated.error);
         return;
       }
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/webhook/consultation`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/consultations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(validated.data)
@@ -238,9 +238,9 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
             setUserData(prev => {
               const updated = {
                 ...prev,
-                hasImage: "yes",
-                imagePath: base64String,
-                imageAnalysis: JSON.stringify(analysis),
+                has_image: "yes",
+                image_path: base64String,
+                image_analysis: JSON.stringify(analysis),
                 footAnalysis: analysis
               };
               onSaveData({
@@ -306,13 +306,21 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       });
       if (!response.ok) throw new Error('Symptom analysis failed');
       const analysis = await response.json();
-      setUserData(prev => ({
-        ...prev,
-        hasSymptomDescription: "yes",
-        symptomDescription: symptoms,
-        symptomAnalysis: JSON.stringify(analysis),
-        symptomAnalysisResults: analysis
-      }));
+      setUserData(prev => {
+        const updated = {
+          ...prev,
+          has_symptom_description: "yes",
+          symptom_description: symptoms,
+          symptom_analysis: JSON.stringify(analysis),
+          symptomAnalysisResults: analysis
+        };
+        onSaveData({
+          ...updated,
+          consultationId,
+          conversationLog
+        }, false);
+        return updated;
+      });
       const step = chatFlow[currentStep];
       const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
       if (nextStepId) processStep(nextStepId);

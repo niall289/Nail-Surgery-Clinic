@@ -36,6 +36,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Webhook alias for consultation creation
+  app.post(`${apiPrefix}/webhook/consultation`, async (req, res) => {
+    try {
+      const validatedData = schema.insertConsultationSchema.parse(req.body);
+      const newConsultation = await storage.createConsultation(validatedData);
+      res.status(201).json(newConsultation);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ errors: error.errors });
+      }
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.patch(`${apiPrefix}/consultations/:id`, async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID format" });

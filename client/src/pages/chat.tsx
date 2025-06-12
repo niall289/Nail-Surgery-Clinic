@@ -107,7 +107,7 @@ export default function Chat() {
           if (isEmbedded && botConfig.clinicLocation !== 'all') {
             handleCreateConsultation({
               ...data,
-              preferredClinic: botConfig.clinicLocation
+              preferred_clinic: botConfig.clinicLocation
             });
           } else {
             handleCreateConsultation(data);
