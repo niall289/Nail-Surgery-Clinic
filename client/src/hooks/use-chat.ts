@@ -38,21 +38,28 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
 
   const sendToAdminPortal = useCallback(async (conversationData: Record<string, any>) => {
     try {
+      console.log("🚀 Sending data to webhook:", "https://footcareclinicadmin.engageiobots.com/api/webhook/consultation");
+      console.log("📦 Webhook payload:", conversationData);
+      
       const validated = insertConsultationSchema.safeParse(conversationData);
       if (!validated.success) {
-        console.error("Validation failed:", validated.error);
+        console.error("❌ Validation failed:", validated.error);
         return;
       }
+      
       const response = await fetch("https://footcareclinicadmin.engageiobots.com/api/webhook/consultation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(validated.data)
       });
-      if (!response.ok) {
-        console.error("Failed to send to portal:", response.statusText);
+      
+      if (response.ok) {
+        console.log("✅ Webhook success:", response.status, response.statusText);
+      } else {
+        console.error("❌ Failed to send to portal:", response.status, response.statusText);
       }
     } catch (err) {
-      console.error("Error syncing to portal:", err);
+      console.error("❌ Error syncing to portal:", err);
     }
   }, []);
 
