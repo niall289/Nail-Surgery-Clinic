@@ -41,6 +41,12 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       console.log("🚀 Sending data to webhook:", "https://footcareclinicadmin.engageiobots.com/api/webhook/consultation");
       console.log("📦 Webhook payload:", conversationData);
       
+      // Only send if we have the required fields
+      if (!conversationData.email || !conversationData.phone) {
+        console.log("⏳ Skipping webhook - missing required fields (email, phone)");
+        return;
+      }
+      
       const validated = insertConsultationSchema.safeParse(conversationData);
       if (!validated.success) {
         console.error("❌ Validation failed:", validated.error);
