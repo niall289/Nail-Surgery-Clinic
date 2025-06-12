@@ -43,7 +43,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
         console.error("Validation failed:", validated.error);
         return;
       }
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/consultations`, {
+      const response = await fetch("https://footcareclinicadmin.engageiobots.com/api/webhook/consultation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(validated.data)
@@ -64,7 +64,9 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
     setConversationLog(updatedLog);
     setUserData(updatedData);
     onSaveData({ ...updatedData, consultationId, conversationLog: updatedLog }, false);
-    if (chatFlow[step]?.syncToPortal) sendToAdminPortal({ ...updatedData, consultationId, conversationLog: updatedLog });
+    
+    // Send all conversations to external webhook portal
+    sendToAdminPortal({ ...updatedData, consultationId, conversationLog: updatedLog });
   }, [userData, conversationLog, onSaveData, consultationId, sendToAdminPortal]);
 
   const setupStepInput = useCallback((step: any) => {
