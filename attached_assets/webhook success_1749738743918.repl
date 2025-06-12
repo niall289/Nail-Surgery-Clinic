@@ -1,0 +1,46 @@
+chunk-RPCDYKBN.js?v=1297af6c:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: Object
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: Object
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: Object
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:220 Sending image to API: /api/analyze-foot-image
+use-chat.ts:243 Raw API response: {"condition":"Ingrown toenail with infection and abscess formation","severity":"severe","recommendations":["Soak the foot in warm water with Epsom salt for 15-20 minutes, 2-3 times a day to reduce swelling.","Apply an antiseptic ointment to the affected area to prevent further infection.","Avoid cutting the nail too short or rounding the edges to prevent worsening the condition.","Wear open-toed or loose-fitting shoes to avoid pressure on the toe.","Seek professional care if there is no improvement in 2-3 days or if symptoms worsen.","Consider a professional nail trimming or surgical intervention if the condition persists.","Keep the foot clean and dry to prevent further infection."],"disclaimer":"This assessment is provided for informational purposes. Please consult a qualified podiatrist for treatment."}
+use-chat.ts:249 Analysis result: Object
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: Object
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: Object
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: Object
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'Niall', preferred_clinic: 'donnycarney', hasImage: 'yes', has_image: 'yes', image_path: 'data:image/jpeg;base64,/9j/4QAC/+EAAv/bAIQADAgICAk…nA59CqcSU8oc/JmbVcWXqPYxSZH6iizs7ZtgxZzDFZbP/2Q==', …}
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'Niall', preferred_clinic: 'donnycarney', hasImage: 'yes', has_image: 'yes', image_path: 'data:image/jpeg;base64,/9j/4QAC/+EAAv/bAIQADAgICAk…nA59CqcSU8oc/JmbVcWXqPYxSZH6iizs7ZtgxZzDFZbP/2Q==', …}
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'Niall', preferred_clinic: 'donnycarney', hasImage: 'yes', has_image: 'yes', image_path: 'data:image/jpeg;base64,/9j/4QAC/+EAAv/bAIQADAgICAk…nA59CqcSU8oc/JmbVcWXqPYxSZH6iizs7ZtgxZzDFZbP/2Q==', …}
+use-chat.ts:63 ✅ Webhook success: 200 OK
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: publickey-credentials-get is not allowed in this document.
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'Niall', preferred_clinic: 'donnycarney', hasImage: 'yes', has_image: 'yes', image_path: 'data:image/jpeg;base64,/9j/4QAC/+EAAv/bAIQADAgICAk…nA59CqcSU8oc/JmbVcWXqPYxSZH6iizs7ZtgxZzDFZbP/2Q==', …}
+use-chat.ts:63 ✅ Webhook success: 200 OK
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'Niall', preferred_clinic: 'donnycarney', hasImage: 'yes', has_image: 'yes', image_path: 'data:image/jpeg;base64,/9j/4QAC/+EAAv/bAIQADAgICAk…nA59CqcSU8oc/JmbVcWXqPYxSZH6iizs7ZtgxZzDFZbP/2Q==', …}
+use-chat.ts:63 ✅ Webhook success: 200 OK
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'Niall', preferred_clinic: 'donnycarney', hasImage: 'yes', has_image: 'yes', image_path: 'data:image/jpeg;base64,/9j/4QAC/+EAAv/bAIQADAgICAk…nA59CqcSU8oc/JmbVcWXqPYxSZH6iizs7ZtgxZzDFZbP/2Q==', …}
+use-chat.ts:63 ✅ Webhook success: 200 OK
