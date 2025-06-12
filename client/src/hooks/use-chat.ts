@@ -112,11 +112,11 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
             data: analysis
           }
         ]);
-        
+
         // After 10 seconds, replace the analysis card with a chat message
         setTimeout(() => {
           const analysisText = `Based on my analysis, it appears you may have ${analysis.condition} (${analysis.severity} severity). Recommendations: ${analysis.recommendations.join(', ')}. This is an AI-assisted preliminary assessment only. Please consult with a qualified healthcare professional for proper diagnosis and treatment.`;
-          
+
           setMessages(prev => prev.map((msg, index) => {
             if (index === prev.length - 1 && msg.type === "analysis") {
               return {
@@ -127,7 +127,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
             }
             return msg;
           }));
-          
+
           step.delay ? setTimeout(() => setupStepInput(step), step.delay) : setupStepInput(step);
         }, 10000);
       }, 1500);
