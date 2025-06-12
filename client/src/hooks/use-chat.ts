@@ -143,7 +143,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
             return msg;
           }));
 
-          step.delay ? setTimeout(() => setupStepInput(step), step.delay) : setupStepInput(step);
+          setupStepInput(step);
         }, 10000);
       }, 1500);
       return;
