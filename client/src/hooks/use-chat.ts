@@ -41,12 +41,10 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       console.log("🚀 Sending data to webhook:", "https://footcareclinicadmin.engageiobots.com/api/webhook/consultation");
       console.log("📦 Webhook payload:", conversationData);
       
-      // Health check removed due to runtime compilation error
-      
-      // Send all data to test external server - comment out validation temporarily
+      // Only send to external server when we have complete data
       if (!conversationData.email || !conversationData.phone) {
-        console.log("⏳ Sending partial data to test external server (missing email/phone)");
-        // return; // Commented out to test external server
+        console.log("⏳ Skipping external webhook - incomplete data (missing email/phone)");
+        return;
       }
       
       const validated = insertConsultationSchema.safeParse(conversationData);
