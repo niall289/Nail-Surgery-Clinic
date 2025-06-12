@@ -70,7 +70,7 @@ IMPORTANT: Respond ONLY with JSON. Do not include any explanation, markdown, or 
           ]
         }
       ],
-      max_tokens: 400,
+      max_tokens: 800,
       temperature: 0.2,
     });
 
