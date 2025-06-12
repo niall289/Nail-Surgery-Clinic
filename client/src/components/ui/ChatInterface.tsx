@@ -75,27 +75,39 @@ export default function ChatInterface({
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      setTimeout(() => {
-        const lastMessage = messages[messages.length - 1];
-        
-        // If the last message is an analysis card, scroll to show its top
-        if (lastMessage && lastMessage.type === "analysis") {
+      const lastMessage = messages[messages.length - 1];
+      
+      // If the last message is an analysis card, scroll to show its top
+      if (lastMessage && lastMessage.type === "analysis") {
+        // Use a longer timeout to ensure the analysis card is fully rendered
+        setTimeout(() => {
           const analysisElements = chatContainerRef.current!.querySelectorAll('[data-analysis-card]');
           const lastAnalysisCard = analysisElements[analysisElements.length - 1] as HTMLElement;
           
           if (lastAnalysisCard) {
-            // Scroll to show the top of the analysis card with some padding
-            const cardTop = lastAnalysisCard.offsetTop;
-            const containerHeight = chatContainerRef.current!.clientHeight;
-            const scrollPosition = Math.max(0, cardTop - 20); // 20px padding from top
+            // Get the container's scroll area
+            const container = chatContainerRef.current!;
+            const containerRect = container.getBoundingClientRect();
+            const cardRect = lastAnalysisCard.getBoundingClientRect();
             
-            chatContainerRef.current!.scrollTop = scrollPosition;
+            // Calculate the position needed to show the card header at the top
+            const currentScrollTop = container.scrollTop;
+            const cardTopRelativeToContainer = cardRect.top - containerRect.top;
+            const targetScrollTop = currentScrollTop + cardTopRelativeToContainer - 10; // 10px padding from top
+            
+            // Scroll to position the analysis card header at the top
+            container.scrollTo({
+              top: Math.max(0, targetScrollTop),
+              behavior: 'smooth'
+            });
           }
-        } else {
-          // Default behavior: scroll to bottom
+        }, 200);
+      } else {
+        // Default behavior: scroll to bottom for all other messages
+        setTimeout(() => {
           chatContainerRef.current!.scrollTop = chatContainerRef.current!.scrollHeight;
-        }
-      }, 100);
+        }, 100);
+      }
     }
   }, [messages, options]);
 
