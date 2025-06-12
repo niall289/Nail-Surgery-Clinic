@@ -172,7 +172,7 @@ export default function ChatInterface({
             type={inputType}
             disabled={isInputDisabled}
             isWaiting={isWaitingForResponse}
-            onSubmit={currentStep === "symptom_description" ? handleSymptomAnalysis : handleUserInput}
+            onSubmit={handleUserInput}
             validate={validate}
             currentData={currentData}
             primaryColor={primaryColor}
