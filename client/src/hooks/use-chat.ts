@@ -200,7 +200,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
           const base64String = reader.result as string;
 
           const apiUrl = import.meta.env.VITE_API_URL || '';
-          const fullUrl = `${apiUrl}/api/analyze-foot-image`;
+          const fullUrl = `${apiUrl}/analyze-foot-image`;
 
           console.log("Sending image to API:", fullUrl);
 
@@ -222,7 +222,15 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
             throw new Error(`Image analysis failed: ${response.status} ${response.statusText}`);
           }
 
-          const analysis = await response.json();
+          let analysis;
+          try {
+            const responseText = await response.text();
+            console.log("Raw API response:", responseText);
+            analysis = JSON.parse(responseText);
+          } catch (parseError) {
+            console.error("JSON parse error:", parseError);
+            throw new Error("Invalid JSON response from server");
+          }
           console.log("Analysis result:", analysis);
 
           // Check if we got a valid analysis or fallback
