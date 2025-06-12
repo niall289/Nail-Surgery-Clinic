@@ -49,6 +49,68 @@ export async function analyzeFootImage(imageBase64: string): Promise<any> {
           content: [
             {
               type: "text",
+              text: `You are a foot care specialist analyzing a foot image. Please analyze this image and provide:
+              1. The most likely condition based on what you observe
+              2. Severity level (mild, moderate, severe)
+              3. 2-3 specific recommendations
+              4. A professional disclaimer
+
+              Return your response as JSON with these exact fields:
+              - condition: string (name of the condition)
+              - severity: string (mild, moderate, or severe)
+              - recommendations: array of strings
+              - disclaimer: string
+
+              Be specific about what you observe in the image.`
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${cleanBase64}`
+              }
+            }
+          ]
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 1000,
+    });
+
+    console.log('OpenAI response received:', response.choices[0].message.content);
+
+    const content = response.choices[0].message.content;
+    if (!content) {
+      throw new Error('No content in OpenAI response');
+    }
+
+    try {
+      const parsed = JSON.parse(content);
+      console.log('Parsed analysis:', parsed);
+      
+      // Validate the response has required fields
+      if (!parsed.condition || !parsed.severity || !parsed.recommendations) {
+        throw new Error('Missing required fields in OpenAI response');
+      }
+
+      return {
+        condition: parsed.condition,
+        severity: parsed.severity,
+        recommendations: Array.isArray(parsed.recommendations) ? parsed.recommendations : ["Visit a clinic for assessment"],
+        disclaimer: parsed.disclaimer || "This is a preliminary AI assessment. Please consult a qualified healthcare provider."
+      };
+    } catch (parseError) {
+      console.error("JSON parse failed:", parseError, "Content:", content);
+      throw new Error('Failed to parse OpenAI response as JSON');
+    }
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
               text:
                 `You are a professional podiatrist AI. Analyze the foot image and return ONLY valid JSON. 
 Format: {

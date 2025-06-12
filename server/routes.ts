@@ -101,6 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Cleaned image data, calling analyzeFootImage...');
       
       const analysis = await analyzeFootImage(cleanImage);
+      console.log('Analysis result from OpenAI service:', analysis);
 
       if (consultationId && !isNaN(parseInt(consultationId))) {
         await storage.updateConsultation(parseInt(consultationId), {
@@ -114,11 +115,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(200).json(analysis);
       }
     } catch (error) {
+      console.error("Image analysis error in route:", error);
       if (!sent) {
         clearTimeout(timeout);
         sent = true;
         res.status(500).json({
           error: "Failed to analyze image",
+          details: error.message,
           fallback: {
             condition: "Unable to analyze image",
             severity: "unknown",

@@ -202,6 +202,8 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
           const apiUrl = import.meta.env.VITE_API_URL || '';
           const fullUrl = `${apiUrl}/api/analyze-foot-image`;
 
+          console.log("Sending image to API:", fullUrl);
+
           const response = await fetch(fullUrl, {
             method: 'POST',
             headers: { 
@@ -221,41 +223,51 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
           }
 
           const analysis = await response.json();
+          console.log("Analysis result:", analysis);
 
-          setUserData(prev => {
-            const updated = {
-              ...prev,
-              hasImage: "yes",
-              imagePath: base64String,
-              imageAnalysis: JSON.stringify(analysis),
-              footAnalysis: analysis
-            };
-            onSaveData({
-              ...updated,
-              consultationId,
-              conversationLog
-            }, false);
-            return updated;
-          });
+          // Check if we got a valid analysis or fallback
+          if (analysis && analysis.condition && analysis.condition !== "Unable to analyze image at this time") {
+            setUserData(prev => {
+              const updated = {
+                ...prev,
+                hasImage: "yes",
+                imagePath: base64String,
+                imageAnalysis: JSON.stringify(analysis),
+                footAnalysis: analysis
+              };
+              onSaveData({
+                ...updated,
+                consultationId,
+                conversationLog
+              }, false);
+              return updated;
+            });
 
-          addMessage("Analysis complete! Here's what I found:", "bot");
+            addMessage("Analysis complete! Here's what I found:", "bot");
 
-          const step = chatFlow[currentStep];
-          const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
-          if (nextStepId) {
-            setTimeout(() => processStep(nextStepId), 1000);
+            setTimeout(() => {
+              addMessage("", "analysis", false, analysis);
+              setTimeout(() => {
+                const step = chatFlow[currentStep];
+                const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
+                if (nextStepId) processStep(nextStepId);
+              }, 2000);
+            }, 1000);
+          } else {
+            // Handle fallback response
+            console.log("Received fallback analysis, continuing without showing results");
+            addMessage("I'm having trouble analyzing your image right now. Let's continue with describing your symptoms instead.", "bot");
+            setTimeout(() => {
+              processStep("issue_category");
+            }, 1500);
           }
-        } catch (err) {
-          console.error("Image analysis error:", err);
+
+        } catch (error) {
+          console.error("Image analysis error:", error);
           addMessage("I'm having trouble analyzing your image right now. Let's continue with describing your symptoms instead.", "bot");
-
-          const step = chatFlow[currentStep];
-          const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
-          if (nextStepId) {
-            setTimeout(() => processStep(nextStepId), 1000);
-          }
-        } finally {
-          setIsWaitingForResponse(false);
+          setTimeout(() => {
+            processStep("issue_category");
+          }, 1500);
         }
       };
 
