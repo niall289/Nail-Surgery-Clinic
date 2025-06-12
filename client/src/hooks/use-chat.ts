@@ -41,13 +41,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       console.log("🚀 Sending data to webhook:", "https://footcareclinicadmin.engageiobots.com/api/webhook/consultation");
       console.log("📦 Webhook payload:", conversationData);
       
-      // Test external server health first
-      try {
-        const healthCheck = await fetch("https://footcareclinicadmin.engageiobots.com/api/health", { method: "GET" });
-        console.log("🏥 External server health check:", healthCheck.status, healthCheck.statusText);
-      } catch (healthError) {
-        console.log("❌ External server health check failed:", healthError.message);
-      }
+      // Health check removed due to runtime compilation error
       
       // Send all data to test external server - comment out validation temporarily
       if (!conversationData.email || !conversationData.phone) {
