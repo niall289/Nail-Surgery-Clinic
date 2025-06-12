@@ -53,7 +53,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
         return;
       }
       
-      const response = await fetch("https://footcareclinicadmin.engageiobots.com/api/webhook/consultation", {
+      const response = await fetch("/api/webhook-proxy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(validated.data)

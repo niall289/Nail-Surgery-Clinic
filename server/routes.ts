@@ -227,6 +227,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Webhook proxy to avoid CORS issues
+  app.post(`${apiPrefix}/webhook-proxy`, async (req, res) => {
+    try {
+      console.log("🔄 Proxying webhook to external server...");
+      const response = await fetch("https://footcareclinicadmin.engageiobots.com/api/webhook/consultation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(req.body)
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log("✅ External webhook success");
+        res.status(200).json(data);
+      } else {
+        console.error("❌ External webhook failed:", response.status, response.statusText);
+        res.status(response.status).json({ error: "External webhook failed" });
+      }
+    } catch (error) {
+      console.error("❌ Webhook proxy error:", error);
+      res.status(500).json({ error: "Webhook proxy failed" });
+    }
+  });
+
   const server = createServer(app);
   return server;
 }
