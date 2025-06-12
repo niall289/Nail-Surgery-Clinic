@@ -1,0 +1,228 @@
+chunk-RPCDYKBN.js?v=1297af6c:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'niall', consultationId: null, conversationLog: Array(1)}
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'niall', preferred_clinic: 'donnycarney', consultationId: null, conversationLog: Array(2)}
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'niall', preferred_clinic: 'donnycarney', hasImage: 'no', consultationId: null, conversationLog: Array(3)}
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'niall', preferred_clinic: 'donnycarney', hasImage: 'no', issue_category: 'nail_problems', consultationId: null, …}
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'niall', preferred_clinic: 'donnycarney', hasImage: 'no', issue_category: 'nail_problems', nailSpecifics: 'ingrown_toenail', …}
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'niall', preferred_clinic: 'donnycarney', hasImage: 'no', issue_category: 'nail_problems', nailSpecifics: 'ingrown_toenail', …}
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'niall', preferred_clinic: 'donnycarney', hasImage: 'no', issue_category: 'nail_problems', nailSpecifics: 'ingrown_toenail', …}
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'niall', preferred_clinic: 'donnycarney', hasImage: 'no', issue_category: 'nail_problems', nailSpecifics: 'ingrown_toenail', …}
+use-chat.ts:46 ⏳ Skipping webhook - missing required fields (email, phone)
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'niall', preferred_clinic: 'donnycarney', hasImage: 'no', issue_category: 'nail_problems', nailSpecifics: 'ingrown_toenail', …}
+use-chat.ts:56 
+            
+            
+           POST https://74a5c1c6-354f-49ed-a2f9-4221388929da-00-d532ej2acf3p.picard.replit.dev/api/webhook-proxy 500 (Internal Server Error)
+(anonymous) @ use-chat.ts:56
+(anonymous) @ use-chat.ts:82
+(anonymous) @ use-chat.ts:193
+handleSubmit @ UserInput.tsx:61
+handleKeyPress @ UserInput.tsx:70
+callCallback2 @ chunk-RPCDYKBN.js?v=1297af6c:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=1297af6c:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=1297af6c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=1297af6c:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=1297af6c:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=1297af6c:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=1297af6c:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=1297af6c:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=1297af6c:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=1297af6c:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=1297af6c:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=1297af6c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=1297af6c:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=1297af6c:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=1297af6c:5449
+use-chat.ts:65 ❌ Failed to send to portal: 500 Internal Server Error
+(anonymous) @ use-chat.ts:65
+await in (anonymous)
+(anonymous) @ use-chat.ts:82
+(anonymous) @ use-chat.ts:193
+handleSubmit @ UserInput.tsx:61
+handleKeyPress @ UserInput.tsx:70
+callCallback2 @ chunk-RPCDYKBN.js?v=1297af6c:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=1297af6c:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=1297af6c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=1297af6c:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=1297af6c:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=1297af6c:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=1297af6c:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=1297af6c:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=1297af6c:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=1297af6c:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=1297af6c:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=1297af6c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=1297af6c:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=1297af6c:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=1297af6c:5449
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: payment is not allowed in this document.
+[Violation] Potential permissions policy violation: publickey-credentials-get is not allowed in this document.
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'niall', preferred_clinic: 'donnycarney', hasImage: 'no', issue_category: 'nail_problems', nailSpecifics: 'ingrown_toenail', …}
+use-chat.ts:56 
+            
+            
+           POST https://74a5c1c6-354f-49ed-a2f9-4221388929da-00-d532ej2acf3p.picard.replit.dev/api/webhook-proxy 500 (Internal Server Error)
+(anonymous) @ use-chat.ts:56
+(anonymous) @ use-chat.ts:82
+(anonymous) @ use-chat.ts:181
+onBookingComplete @ ChatInterface.tsx:152
+(anonymous) @ CalendarEmbed.tsx:19
+setTimeout
+handleBookingComplete @ CalendarEmbed.tsx:17
+callCallback2 @ chunk-RPCDYKBN.js?v=1297af6c:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=1297af6c:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=1297af6c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=1297af6c:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=1297af6c:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=1297af6c:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=1297af6c:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=1297af6c:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=1297af6c:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=1297af6c:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=1297af6c:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=1297af6c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=1297af6c:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=1297af6c:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=1297af6c:5449
+use-chat.ts:65 ❌ Failed to send to portal: 500 Internal Server Error
+(anonymous) @ use-chat.ts:65
+await in (anonymous)
+(anonymous) @ use-chat.ts:82
+(anonymous) @ use-chat.ts:181
+onBookingComplete @ ChatInterface.tsx:152
+(anonymous) @ CalendarEmbed.tsx:19
+setTimeout
+handleBookingComplete @ CalendarEmbed.tsx:17
+callCallback2 @ chunk-RPCDYKBN.js?v=1297af6c:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=1297af6c:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=1297af6c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=1297af6c:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=1297af6c:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=1297af6c:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=1297af6c:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=1297af6c:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=1297af6c:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=1297af6c:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=1297af6c:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=1297af6c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=1297af6c:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=1297af6c:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=1297af6c:5449
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'niall', preferred_clinic: 'donnycarney', hasImage: 'no', issue_category: 'nail_problems', nailSpecifics: 'ingrown_toenail', …}
+use-chat.ts:56 
+            
+            
+           POST https://74a5c1c6-354f-49ed-a2f9-4221388929da-00-d532ej2acf3p.picard.replit.dev/api/webhook-proxy 500 (Internal Server Error)
+(anonymous) @ use-chat.ts:56
+(anonymous) @ use-chat.ts:82
+(anonymous) @ use-chat.ts:181
+onClick @ ChatOptions.tsx:20
+callCallback2 @ chunk-RPCDYKBN.js?v=1297af6c:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=1297af6c:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=1297af6c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=1297af6c:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=1297af6c:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=1297af6c:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=1297af6c:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=1297af6c:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=1297af6c:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=1297af6c:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=1297af6c:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=1297af6c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=1297af6c:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=1297af6c:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=1297af6c:5449
+use-chat.ts:65 ❌ Failed to send to portal: 500 Internal Server Error
+(anonymous) @ use-chat.ts:65
+await in (anonymous)
+(anonymous) @ use-chat.ts:82
+(anonymous) @ use-chat.ts:181
+onClick @ ChatOptions.tsx:20
+callCallback2 @ chunk-RPCDYKBN.js?v=1297af6c:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=1297af6c:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=1297af6c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=1297af6c:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=1297af6c:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=1297af6c:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=1297af6c:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=1297af6c:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=1297af6c:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=1297af6c:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=1297af6c:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=1297af6c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=1297af6c:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=1297af6c:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=1297af6c:5449
+use-chat.ts:41 🚀 Sending data to webhook: https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+use-chat.ts:42 📦 Webhook payload: {name: 'niall', preferred_clinic: 'donnycarney', hasImage: 'no', issue_category: 'nail_problems', nailSpecifics: 'ingrown_toenail', …}
+use-chat.ts:56 
+            
+            
+           POST https://74a5c1c6-354f-49ed-a2f9-4221388929da-00-d532ej2acf3p.picard.replit.dev/api/webhook-proxy 500 (Internal Server Error)
+(anonymous) @ use-chat.ts:56
+(anonymous) @ use-chat.ts:82
+(anonymous) @ use-chat.ts:181
+onClick @ ChatOptions.tsx:20
+callCallback2 @ chunk-RPCDYKBN.js?v=1297af6c:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=1297af6c:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=1297af6c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=1297af6c:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=1297af6c:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=1297af6c:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=1297af6c:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=1297af6c:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=1297af6c:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=1297af6c:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=1297af6c:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=1297af6c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=1297af6c:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=1297af6c:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=1297af6c:5449
+use-chat.ts:65 ❌ Failed to send to portal: 500 Internal Server Error
+(anonymous) @ use-chat.ts:65
+await in (anonymous)
+(anonymous) @ use-chat.ts:82
+(anonymous) @ use-chat.ts:181
+onClick @ ChatOptions.tsx:20
+callCallback2 @ chunk-RPCDYKBN.js?v=1297af6c:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=1297af6c:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=1297af6c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=1297af6c:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=1297af6c:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=1297af6c:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=1297af6c:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=1297af6c:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=1297af6c:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=1297af6c:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=1297af6c:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=1297af6c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=1297af6c:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=1297af6c:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=1297af6c:5449
