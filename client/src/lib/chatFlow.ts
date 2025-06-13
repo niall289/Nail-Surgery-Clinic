@@ -84,11 +84,11 @@ import { z } from "zod";
           next: "upload_prompt"
         },
         clinic_info_palmerstown: {
-          message: "Great choice! Our Palmerstown clinic is open Wednesday & Thursday from 9am-6pm. The address is: Unit 4, Palmerstown Shopping Centre, Palmerstown, Dublin 20, D20 XC67",
+          message: "Great choice! Our Palmerstown clinic is open Wednesday & Thursday from 9am-6pm. The address is: Unit 18, First floor, Palmerstown Shopping Centre, Palmerstown Park, Palmerstown, Dublin, D20 HP44",
           next: "upload_prompt"
         },
         clinic_info_baldoyle: {
-          message: "Great choice! Our Baldoyle clinic is open Saturday only from 9am-5pm. The address is: 123 Main Street, Baldoyle, Dublin 13, D13 AB45",
+          message: "Great choice! Our Baldoyle clinic is open Saturday only from 9am-5pm. The address is: 16 Main Street, Baldoyle, Dublin, D13DC98",
           next: "upload_prompt"
         },
         clinic_info_general: {
