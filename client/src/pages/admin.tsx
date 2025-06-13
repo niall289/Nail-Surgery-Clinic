@@ -52,7 +52,7 @@ export default function Admin() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>FootCare Clinic Consultations</CardTitle>
+            <CardTitle>The Nail Surgery Clinic Consultations</CardTitle>
             <CardDescription>
               View and export patient consultation data
             </CardDescription>

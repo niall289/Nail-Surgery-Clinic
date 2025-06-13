@@ -46,13 +46,13 @@ import { z } from "zod";
           return "Our hours vary by location: Donnycarney (Mon, Tue, Fri 9am-6pm), Palmerstown (Wed, Thu 9am-6pm), Baldoyle (Mon-Fri 10am-7pm).";
         }
 
-        return "Thank you for your question. Our team will be happy to help you with this during your appointment, or you can call us at 089 9678596 for immediate assistance.";
+        return "Thank you for your question. Our team will be happy to help you with this during your appointment, or you can visit www.nailsurgeryclinic.ie for more information.";
       }
 
       export const chatFlow: ChatFlow = {
         welcome: {
           message: (userData: any, settings?: any) => {
-            return settings?.welcomeMessage || "👋 Hello! I'm Fiona, your FootCare Clinic virtual assistant. I'll help gather some information about your foot and nail concerns and connect you with our team if needs be. Before we begin, I'll need to collect some basic information. Rest assured, your data is kept private and secure.";
+            return settings?.welcomeMessage || "Hi! I'm Niamh, your virtual assistant at The Nail Surgery Clinic. I'm here to help with your nail care and podiatry needs. 👋";
           },
           next: "name"
         },
@@ -490,7 +490,7 @@ import { z } from "zod";
               const response = findRelevantInfo(userData.userInput);
               return `${response}\n\nIs there anything else I can help you with?`;
             }
-            return "Thank you for your question. Our team will be happy to help you with this during your appointment, or you can call us at 089 9678596 for immediate assistance.";
+            return "Thank you for your question. Our team will be happy to help you with this during your appointment, or you can visit www.nailsurgeryclinic.ie for more information.";
           },
           options: [
             { text: "No, that's all for now", value: "finished" },

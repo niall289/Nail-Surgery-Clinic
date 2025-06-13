@@ -31,7 +31,7 @@ export async function generateNurseImage(): Promise<string> {
   if (!imageGenClient) {
     console.warn("OpenAI image generation client not initialized. Attempting to use fallback asset image.");
     if (fs.existsSync(assetsCachePath)) {
-        console.log("Using fallback nurse image from client/public/assets/images/nurse-fiona.png");
+        console.log("Using fallback nurse image from client/public/assets/images/nurse-niamh.png");
         const imageBuffer = fs.readFileSync(assetsCachePath);
         return imageBuffer.toString("base64");
     }
@@ -80,7 +80,7 @@ export async function generateNurseImage(): Promise<string> {
     console.error("Error generating nurse image with OpenAI:", error);
     console.warn("Attempting to use fallback asset image due to OpenAI error.");
     if (fs.existsSync(assetsCachePath)) {
-        console.log("Using fallback nurse image from client/public/assets/images/nurse-fiona.png");
+        console.log("Using fallback nurse image from client/public/assets/images/nurse-niamh.png");
         const imageBuffer = fs.readFileSync(assetsCachePath);
         return imageBuffer.toString("base64");
     }
