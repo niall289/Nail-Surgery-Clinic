@@ -63,7 +63,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
         issue_specifics: conversationData.issue_specifics || "",
         symptom_description: conversationData.symptom_description || "",
         previous_treatment: conversationData.previous_treatment || "",
-        has_image: conversationData.has_image || "no",
+        has_image: conversationData.has_image === "yes" ? "true" : "false",
         image_path: conversationData.image_path || "",
         image_analysis: conversationData.image_analysis || "",
         calendar_booking: conversationData.calendar_booking || "",
@@ -109,6 +109,25 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
     const field = chatStepToField[step];
     const updatedData = { ...userData };
     if (field) updatedData[field] = value;
+    
+    // Map specific steps to consultation fields
+    if (step === 'calendar_booking') {
+      updatedData.calendar_booking = value;
+      updatedData.booking_confirmation = value === 'booked' ? 'Confirmed' : 'Pending';
+    }
+    if (step === 'final_question') {
+      updatedData.final_question = value;
+    }
+    if (step === 'additional_help') {
+      updatedData.additional_help = value;
+    }
+    if (step === 'emoji_survey') {
+      updatedData.emoji_survey = value;
+    }
+    if (step === 'survey_response') {
+      updatedData.survey_response = value;
+    }
+    
     const updatedLog = [...conversationLog, { step, response: value }];
     setConversationLog(updatedLog);
     setUserData(updatedData);
@@ -365,7 +384,6 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       setUserData(prev => {
         const updated = {
           ...prev,
-          has_symptom_description: "yes",
           symptom_description: symptoms,
           symptom_analysis: JSON.stringify(analysis),
           symptomAnalysisResults: analysis
