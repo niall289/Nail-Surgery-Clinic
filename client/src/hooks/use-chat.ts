@@ -53,28 +53,48 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
     try {
       console.log("🚀 Submitting final consultation to webhook");
 
-      // Prepare complete payload matching schema
+      // Prepare complete payload matching schema with both naming conventions
       const payload = {
-        name: conversationData.name || "",
-        email: conversationData.email || "",
-        phone: conversationData.phone || "",
-        preferred_clinic: conversationData.preferred_clinic || "",
-        issue_category: conversationData.issue_category || "",
-        issue_specifics: conversationData.issue_specifics || "",
-        symptom_description: conversationData.symptom_description || "",
-        previous_treatment: conversationData.previous_treatment || "",
+        // Required core fields
+        name: conversationData.name || null,
+        email: conversationData.email || null,
+        phone: conversationData.phone || null,
+        
+        // Snake_case fields (current backend expectation)
+        preferred_clinic: conversationData.preferred_clinic || null,
+        issue_category: conversationData.issue_category || null,
+        issue_specifics: conversationData.issue_specifics || null,
+        symptom_description: conversationData.symptom_description || null,
+        previous_treatment: conversationData.previous_treatment || null,
         has_image: conversationData.has_image === "yes" ? "true" : "false",
-        image_path: conversationData.image_path || "",
-        image_analysis: conversationData.image_analysis || "",
-        calendar_booking: conversationData.calendar_booking || "",
-        booking_confirmation: conversationData.booking_confirmation || "",
-        final_question: conversationData.final_question || "",
-        additional_help: conversationData.additional_help || "",
-        emoji_survey: conversationData.emoji_survey || "",
-        survey_response: conversationData.survey_response || "",
+        image_path: conversationData.image_path || null,
+        image_analysis: conversationData.image_analysis || null,
+        calendar_booking: conversationData.calendar_booking || null,
+        booking_confirmation: conversationData.booking_confirmation || null,
+        final_question: conversationData.final_question || null,
+        additional_help: conversationData.additional_help || null,
+        emoji_survey: conversationData.emoji_survey || null,
+        survey_response: conversationData.survey_response || null,
+        
+        // CamelCase variants (for portal compatibility)
+        preferredClinic: conversationData.preferred_clinic || null,
+        issueCategory: conversationData.issue_category || null,
+        issueSpecifics: conversationData.issue_specifics || null,
+        symptomDescription: conversationData.symptom_description || null,
+        previousTreatment: conversationData.previous_treatment || null,
+        imageAnalysis: conversationData.image_analysis || null,
+        calendarBooking: conversationData.calendar_booking || null,
+        bookingConfirmation: conversationData.booking_confirmation || null,
+        finalQuestion: conversationData.final_question || null,
+        additionalHelp: conversationData.additional_help || null,
+        emojiSurvey: conversationData.emoji_survey || null,
+        surveyResponse: conversationData.survey_response || null,
+        
+        // System fields
         conversation_log: Array.isArray(conversationData.conversationLog) ? conversationData.conversationLog : [],
         completed_steps: Array.isArray(conversationData.completed_steps) ? conversationData.completed_steps : [],
-        consultationId: consultationId
+        consultationId: consultationId,
+        createdAt: new Date().toISOString()
       };
 
       console.log("✅ Final webhook payload:", payload);
