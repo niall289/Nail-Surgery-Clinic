@@ -114,11 +114,12 @@ import { z } from "zod";
             { text: "General nail consultation", value: "general_nail" }
           ],
           next: (value) => {
-            if (value === "nail_problems") return "nail_specifics";
-            if (value === "pain_discomfort") return "pain_specifics";
-            if (value === "skin_issues") return "skin_specifics";
-            if (value === "structural_concerns") return "structural_specifics";
-            return "details";
+            if (value === "ingrown_toenail") return "ingrown_details";
+            if (value === "fungal_infection") return "fungal_details";
+            if (value === "nail_trauma") return "damaged_nail_details";
+            if (value === "thick_nails") return "thick_nails_details";
+            if (value === "recurring_problems") return "recurring_details";
+            return "symptom_description_prompt";
           }
         },
         nail_specifics: {
@@ -182,6 +183,39 @@ import { z } from "zod";
         },
         total_avulsion_info: {
           message: "For severely damaged or disfigured nails, our Total Nail Avulsion (TNA) procedure may be the best solution. This involves the safe removal of the entire toenail and is performed routinely in our treatment chair under local anaesthetic. The procedure takes only 15 minutes, with the appointment lasting one hour including preparation and aftercare.",
+          next: "symptom_description_prompt",
+          delay: 3000
+        },
+        thick_nails_details: {
+          message: "How would you describe your thick nail condition?",
+          options: [
+            { text: "Gradually thickening over time", value: "gradual_thickening" },
+            { text: "Suddenly thick after injury", value: "trauma_thickening" },
+            { text: "Yellow/discolored and thick", value: "fungal_thickening" },
+            { text: "Multiple nails affected", value: "multiple_thick" },
+            { text: "Difficult to cut/trim", value: "difficult_trim" },
+            { text: "Painful thick nails", value: "painful_thick" }
+          ],
+          next: "thick_nails_treatment_info"
+        },
+        thick_nails_treatment_info: {
+          message: "Thick nails can result from various causes including fungal infections, trauma, or genetic factors. At The Nail Surgery Clinic, we can help determine the underlying cause and provide appropriate treatment. This may include nail reduction, antifungal therapy, or in severe cases, partial or total nail removal procedures.",
+          next: "symptom_description_prompt",
+          delay: 3000
+        },
+        recurring_details: {
+          message: "What type of recurring nail problem are you experiencing?",
+          options: [
+            { text: "Repeatedly ingrown toenails", value: "recurring_ingrown" },
+            { text: "Chronic nail infections", value: "recurring_infection" },
+            { text: "Nails keep getting damaged", value: "recurring_damage" },
+            { text: "Previous treatments haven't worked", value: "failed_treatments" },
+            { text: "Same problem on multiple nails", value: "multiple_recurring" }
+          ],
+          next: "recurring_treatment_info"
+        },
+        recurring_treatment_info: {
+          message: "Recurring nail problems often require a more permanent solution. Our specialized nail surgery procedures (PNA and TNA) are designed to provide long-term relief for chronic issues. We also offer comprehensive aftercare guidance to prevent future problems.",
           next: "symptom_description_prompt",
           delay: 3000
         },
@@ -638,6 +672,12 @@ import { z } from "zod";
         // Survey and feedback
         emoji_survey: "emoji_survey",
         survey_response: "survey_response",
+
+        // Thick nails and recurring problems
+        thick_nails_details: "thickNailsDetails",
+        thick_nails_treatment_info: "thickNailsTreatmentInfo",
+        recurring_details: "recurringDetails",
+        recurring_treatment_info: "recurringTreatmentInfo",
 
         // Legacy mappings for backwards compatibility
         service_selection: "issueCategory",
