@@ -27,7 +27,7 @@ export async function fetchChatbotSettings(): Promise<ChatbotSettings> {
   try {
     console.log('🔄 Fetching chatbot settings from portal...');
 
-    const response = await fetch('https://footcareclinicadmin.engageiobots.com/api/chatbot-settings', {
+    const response = await fetch('https://nailsurgeryclinicadmin.engageiobots.com/api/chatbot-settings', {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
