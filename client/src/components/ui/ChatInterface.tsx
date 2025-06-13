@@ -135,7 +135,7 @@ export default function ChatInterface({
           <h2 className="text-white font-semibold text-lg">
             {chatbotSettings?.botDisplayName || botName}
           </h2>
-          <p className="text-white opacity-80 text-sm">FootCare Clinic Assistant</p>
+          <p className="text-white opacity-80 text-sm">The Nail Surgery Clinic Assistant</p>
         </div>
         <div className="ml-auto">
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">

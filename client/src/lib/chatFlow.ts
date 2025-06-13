@@ -132,12 +132,14 @@ import { z } from "zod";
           delay: 10000
         },
         issue_category: {
-          message: "What type of foot concern brings you to our clinic today?",
+          message: "What type of nail concern can I help you with today?",
           options: [
-            { text: "Nail problems", value: "nail_problems" },
-            { text: "Pain or discomfort", value: "pain_discomfort" },
-            { text: "Skin issues", value: "skin_issues" },
-            { text: "Structural concerns", value: "structural_concerns" }
+            { text: "Ingrown toenail", value: "ingrown_toenail" },
+            { text: "Fungal nail infection", value: "fungal_infection" },
+            { text: "Nail trauma or injury", value: "nail_trauma" },
+            { text: "Thick or damaged nails", value: "thick_nails" },
+            { text: "Recurring nail problems", value: "recurring_problems" },
+            { text: "General nail consultation", value: "general_nail" }
           ],
           next: (value) => {
             if (value === "nail_problems") return "nail_specifics";
