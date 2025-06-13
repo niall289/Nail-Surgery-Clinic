@@ -104,10 +104,40 @@
 
   const createChatButton = () => {
     const button = document.createElement('button');
-    button.id = 'fc-chat-widget-button';
-    button.title = `Chat with ${config.botName}`;
-    button.innerHTML = `
-      <img src="/assets/images/nurse-fiona.png" alt="Fiona Avatar">
+
+    // Fetch dynamic button label
+    const getButtonLabel = async () => {
+      try {
+        const response = await fetch('https://footcareclinicadmin.engageiobots.com/api/chatbot-settings');
+        if (response.ok) {
+          const settings = await response.json();
+          return settings.ctaButtonLabel || '💬 Ask Fiona';
+        }
+      } catch (error) {
+        console.warn('Failed to fetch button label from portal, using default');
+      }
+      return '💬 Ask Fiona';
+    };
+
+    getButtonLabel().then(label => {
+      button.innerHTML = label;
+    });
+
+    button.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      ${config.position === 'right' ? 'right' : 'left'}: 20px;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background-color: ${config.theme === 'teal' ? '#00847e' : '#4CAF50'};
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 9998;
+      border: none;
     `;
     button.onclick = toggleChatWidget;
     document.body.appendChild(button);

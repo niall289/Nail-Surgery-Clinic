@@ -7,7 +7,7 @@ import { z } from "zod";
       }
 
       export type ChatStep = {
-        message: string | ((userData: any) => string);
+        message: string | ((userData: any, settings?: any) => string);
         delay?: number;
         input?: 'text' | 'tel' | 'email' | 'textarea';
         imageUpload?: boolean;
@@ -51,7 +51,9 @@ import { z } from "zod";
 
       export const chatFlow: ChatFlow = {
         welcome: {
-          message: "👋 Hello! I'm Fiona, your FootCare Clinic virtual assistant. I'll help gather some information about your foot and nail concerns and connect you with our team if needs be. Before we begin, I'll need to collect some basic information. Rest assured, your data is kept private and secure.",
+          message: (userData: any, settings?: any) => {
+            return settings?.welcomeMessage || "👋 Hello! I'm Fiona, your FootCare Clinic virtual assistant. I'll help gather some information about your foot and nail concerns and connect you with our team if needs be. Before we begin, I'll need to collect some basic information. Rest assured, your data is kept private and secure.";
+          },
           next: "name"
         },
         name: {

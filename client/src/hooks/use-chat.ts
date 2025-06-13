@@ -6,6 +6,7 @@ import {
   emailSchema,
   insertConsultationSchema
 } from "../../../shared/schema";
+import { fetchChatbotSettings, type ChatbotSettings } from "@/services/chatbotSettings";
 
 interface Message {
   text: string;
@@ -30,6 +31,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
   const [userData, setUserData] = useState<Record<string, any>>({});
   const [conversationLog, setConversationLog] = useState<{step: string, response: string}[]>([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [chatbotSettings, setChatbotSettings] = useState<ChatbotSettings | null>(null);
 
   const addMessage = useCallback((text: string, type: "bot" | "user", isTyping = false) => {
     setMessages(prev => [...prev, { text, type, isTyping }]);
@@ -266,7 +268,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
 
     let messageText = '';
     if (typeof step.message === 'function') {
-      messageText = step.message(userData);
+      messageText = step.message(userData, chatbotSettings);
     } else {
       messageText = step.message || '';
     }
@@ -331,7 +333,17 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
   }, [setupStepInput, userData, addMessage]);
 
   useEffect(() => { processStepRef.current = processStep; }, [processStep]);
-  useEffect(() => { if (messages.length === 0) processStep("welcome"); }, []);
+  
+  useEffect(() => {
+    // Load chatbot settings on initialization
+    fetchChatbotSettings().then(setChatbotSettings);
+  }, []);
+  
+  useEffect(() => { 
+    if (messages.length === 0 && chatbotSettings) {
+      processStep("welcome");
+    }
+  }, [chatbotSettings]);
 
   const handleOptionSelect = useCallback((option: ChatOption) => {
     const step = chatFlow[currentStep];
@@ -533,6 +545,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
     handleImageUpload,
     handleSymptomAnalysis,
     validate,
-    currentStep
+    currentStep,
+    chatbotSettings
   };
 }

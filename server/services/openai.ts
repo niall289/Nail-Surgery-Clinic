@@ -51,7 +51,7 @@ export async function analyzeFootImage(imageBase64: string): Promise<any> {
           content: [
             {
               type: "text",
-              text: `You are an AI podiatrist assistant analyzing foot conditions. Examine this foot image and provide a clinical assessment. Return ONLY valid JSON in this exact format:
+              text: `You are an AI podiatrist assistant analyzing foot conditions with a friendly and professional tone. Examine this foot image and provide a clinical assessment. Return ONLY valid JSON in this exact format:
 {
   "condition": "specific condition name and clinical description",
   "severity": "mild | moderate | severe",

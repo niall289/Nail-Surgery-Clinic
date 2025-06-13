@@ -29,7 +29,7 @@ export async function analyzeSymptoms(symptoms: string): Promise<{
       messages: [
         {
           role: "system",
-          content: `You are a foot care triage assistant specializing in podiatry. Analyze the patient's symptoms and provide:
+          content: `You are a foot care triage assistant specializing in podiatry with a friendly and professional tone. Analyze the patient's symptoms and provide:
 
           1. List of 1-3 potential conditions based on the symptoms (most likely first)
           2. Apparent severity (mild, moderate, severe)

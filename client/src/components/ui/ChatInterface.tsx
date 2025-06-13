@@ -49,7 +49,8 @@ export default function ChatInterface({
     handleImageUpload,
     handleSymptomAnalysis,
     validate,
-    currentStep
+    currentStep,
+    chatbotSettings
   } = useChat({
     consultationId,
     onSaveData: (data, isComplete) => {
@@ -131,7 +132,9 @@ export default function ChatInterface({
       >
         <NurseAvatar size="md" avatarUrl={avatarUrl} />
         <div className="ml-3">
-          <h2 className="text-white font-semibold text-lg">{botName}</h2>
+          <h2 className="text-white font-semibold text-lg">
+            {chatbotSettings?.botDisplayName || botName}
+          </h2>
           <p className="text-white opacity-80 text-sm">FootCare Clinic Assistant</p>
         </div>
         <div className="ml-auto">
