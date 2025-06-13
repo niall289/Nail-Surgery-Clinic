@@ -77,6 +77,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
         consultationId: consultationId
       };
 
+      console.log("✅ Final webhook payload:", payload);
       console.log("📦 Payload being sent:", payload);
 
       const validated = insertConsultationSchema.safeParse(payload);
@@ -115,24 +116,34 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       case 'issue_category':
         updatedData.issue_category = value;
         break;
+      // All specifics map to issue_specifics
       case 'structural_specifics':
       case 'skin_specifics':
       case 'pain_specifics':
       case 'nail_specifics':
+      case 'calluses_details':
+      case 'dry_skin_details':
       case 'rash_details':
-      case 'fungal_details':
-      case 'pain_details':
-      case 'heel_details':
-      case 'arch_details':
-      case 'toe_details':
-      case 'nail_details':
+      case 'warts_details':
+      case 'athletes_foot_details':
+      case 'bunions_details':
+      case 'hammer_toes_details':
+      case 'flat_feet_details':
+      case 'high_arches_details':
+      case 'claw_toes_details':
+      case 'heel_pain_type':
+      case 'arch_pain_type':
+      case 'ball_foot_pain_type':
+      case 'toe_pain_type':
+      case 'ankle_pain_type':
+      case 'entire_foot_pain_type':
         updatedData.issue_specifics = value;
         break;
       case 'symptom_description':
         updatedData.symptom_description = value;
         break;
       case 'previous_treatment':
-        updatedData.previous_treatment = value;
+        updatedData.previous_treatment = value === 'yes' ? 'Yes' : (value === 'no' ? 'No' : value);
         break;
       case 'calendar_booking':
         updatedData.calendar_booking = value;
@@ -145,13 +156,23 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
         updatedData.additional_help = value;
         break;
       case 'emoji_survey':
-        updatedData.emoji_survey = value;
+        // Map emoji values to actual emojis
+        const emojiMap = {
+          'excellent': '😍',
+          'good': '😊',
+          'okay': '😐',
+          'poor': '😞'
+        };
+        updatedData.emoji_survey = emojiMap[value] || value;
         break;
       case 'survey_response':
         updatedData.survey_response = value;
         break;
       case 'clinic_location':
         updatedData.preferred_clinic = value;
+        break;
+      case 'upload_prompt':
+        updatedData.has_image = value;
         break;
     }
 
@@ -353,7 +374,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
               const completedSteps = [...new Set([...prev.completed_steps || [], 'image_upload'])];
               const updated = {
                 ...prev,
-                has_image: "yes",
+                has_image: "true",
                 image_path: base64String,
                 image_analysis: JSON.stringify(analysis),
                 footAnalysis: analysis,
