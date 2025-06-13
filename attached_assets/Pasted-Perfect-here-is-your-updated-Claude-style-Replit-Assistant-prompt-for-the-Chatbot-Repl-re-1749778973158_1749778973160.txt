@@ -1,0 +1,76 @@
+Perfect — here is your **updated Claude-style Replit Assistant prompt** for the **Chatbot Repl**, revised to:
+
+* 💬 **Ask the assistant to evaluate** whether adding camelCase field variants would solve the issue
+* ✅ **List exactly which fields to consider**
+* 🚫 **Prevent it from making any changes** until we review and approve
+* 👨‍🔬 Encourage careful analysis without assumption or premature edits
+
+---
+
+## 🧠 CHATBOT PROMPT — FIELD NAME MAPPING EVALUATION (NO CHANGES YET)
+
+> 🎯 **Paste this into the Replit Assistant inside the Chatbot Repl**
+
+---
+
+You are a Claude 4.0 agent embedded in a **medical chatbot project**. The chatbot currently sends a consultation payload to the portal at `/api/webhook/consultation`.
+
+✅ The webhook returns a success message
+❌ But many key fields still appear as `null` in the admin portal
+
+We’ve confirmed that the portal webhook supports **multiple field name variants** (e.g. `issueSpecifics` or `issue_specifics`) and may only be populating values when it receives specific camelCase field names.
+
+---
+
+### 🎯 Objective (For Evaluation Only):
+
+Review the current webhook payload and consider **whether adding camelCase variants** of the key fields would solve the issue — **without changing anything yet**.
+
+---
+
+### 🧪 Fields to Evaluate for Mapping:
+
+Determine if it would help to send these **in addition to** (not instead of) the existing snake\_case fields:
+
+| Variant to Consider  | Current field         |
+| -------------------- | --------------------- |
+| `issueSpecifics`     | `issue_specifics`     |
+| `symptomDescription` | `symptom_description` |
+| `previousTreatment`  | `previous_treatment`  |
+| `imageAnalysis`      | `image_analysis`      |
+| `calendarBooking`    | `calendar_booking`    |
+| `finalQuestion`      | `final_question`      |
+| `additionalHelp`     | `additional_help`     |
+| `emojiSurvey`        | `emoji_survey`        |
+| `surveyResponse`     | `survey_response`     |
+
+> The portal may map these automatically if present in the payload.
+
+---
+
+### 🧠 What You Should Do:
+
+* Review the current final `payload` object in `use-chat.ts`
+* Think critically: Would **adding these camelCase fields** alongside the existing snake\_case ones help with compatibility?
+* Output your reasoning, with an example of what the **final payload structure could look like** if we added both versions
+
+---
+
+### ⚠️ Do NOT:
+
+* Make any code changes yet
+* Rename state variables or modify chatbot flow
+* Remove existing snake\_case fields
+* Send an updated payload
+
+---
+
+### 🛠️ Stack:
+
+* React + TypeScript (Vite)
+* Express backend
+* Sends final POST to `/api/webhook/consultation`
+
+---
+
+Wait for explicit approval before making any edits. Your job right now is to **evaluate, explain, and propose — not execute**.

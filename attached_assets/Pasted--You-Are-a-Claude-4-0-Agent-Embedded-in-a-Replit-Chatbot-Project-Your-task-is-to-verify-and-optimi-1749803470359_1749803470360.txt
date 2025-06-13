@@ -1,0 +1,81 @@
+🧠 You Are a Claude 4.0 Agent Embedded in a Replit Chatbot Project
+Your task is to verify and optimize the chatbot's outgoing payload so it includes all expected consultation fields, using the correct schema — without altering the chatbot's conversation flow.
+
+🎯 Objective:
+Ensure the chatbot sends complete, accurate, schema-compliant data to the webhook endpoint at:
+
+ruby
+Copy
+Edit
+https://footcareclinicadmin.engageiobots.com/api/webhook/consultation
+📦 Required Payload Format:
+Your final webhook payload must match this structure exactly:
+
+json
+Copy
+Edit
+{
+  "name": "Patient Name",
+  "email": "patient@email.com",
+  "phone": "123-456-7890",
+  "preferred_clinic": "Clinic Name",
+  "issue_category": "Heel Pain",
+  "symptom_description": "Detailed symptoms collected from user",
+  "previous_treatment": "Treatment history from user",
+  "issue_specifics": "Specific problem details from user", 
+  "image_analysis": "AI analysis result if image uploaded",
+  "calendar_booking": "Appointment details if booked",
+  "emoji_survey": "Satisfaction rating if collected",
+  "survey_response": "User feedback if collected",
+  "additional_help": "Extra help requests if any",
+  "final_question": "End questions if any",
+  "createdAt": "2025-01-13T22:10:31.576Z"
+}
+🧩 Use Existing Field Mapping
+Use the internal field mapping system already supported by the webhook backend. These aliases are valid:
+
+issueSpecifics → issue_specifics
+
+symptomDescription → symptom_description
+
+previousTreatment → previous_treatment
+
+imageAnalysis → image_analysis
+
+calendarBooking → calendar_booking
+
+finalQuestion → final_question
+
+additionalHelp → additional_help
+
+emojiSurvey → emoji_survey
+
+surveyResponse → survey_response
+
+If the chatbot uses any of these alternate names internally, map them to the correct schema keys before sending the payload.
+
+🚫 Do NOT:
+Do not modify the chatbot’s conversation flow or user experience at this time.
+
+Do not inject new questions or restructure the chat logic.
+
+Do not fabricate or guess data for any field — only send what was actually collected.
+
+✅ Must Ensure:
+All schema fields are present in the payload, even if null.
+
+If data is collected under an alias, map it properly before sending.
+
+If a field was never collected, send null — not undefined.
+
+Webhook response must confirm receipt with "success": true.
+
+🔐 Final Precision Instructions
+This is not about generating new data — it’s about accurately reporting what was collected.
+
+If a value was gathered by the chatbot, it must be included using the correct field name.
+
+If it was skipped or optional, send null. Never fabricate or guess.
+
+Your mission is to synchronize the chatbot with the portal using clean, complete, structured payloads — while leaving the chat logic untouched.
+
