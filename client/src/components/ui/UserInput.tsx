@@ -168,6 +168,7 @@ export default function UserInput({
           placeholder={`Type your ${type === "tel" ? "phone number" : type === "email" ? "email" : "message"}...`}
           className="flex-1 border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:border-transparent" // Changed to rounded-lg
           style={{ '--tw-ring-color': primaryColor } as React.CSSProperties}
+          autoComplete={type === 'text' ? 'name' : type === 'email' ? 'email' : type === 'tel' ? 'tel' : 'off'}
         />
         <Button
           onClick={handleSubmit}
