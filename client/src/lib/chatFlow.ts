@@ -88,7 +88,7 @@ import { z } from "zod";
           next: "upload_prompt"
         },
         clinic_info_baldoyle: {
-          message: "Great choice! Our Baldoyle clinic is open Monday to Friday from 10am-7pm. The address is: 123 Main Street, Baldoyle, Dublin 13, D13 AB45",
+          message: "Great choice! Our Baldoyle clinic is open Saturday only from 9am-5pm. The address is: 123 Main Street, Baldoyle, Dublin 13, D13 AB45",
           next: "upload_prompt"
         },
         clinic_info_general: {
