@@ -19,8 +19,8 @@ const NurseAvatar: React.FC<NurseAvatarProps> = ({ size = 'md', avatarUrl }) => 
   return (
     <div className={`${sizeClass} rounded-full overflow-hidden flex-shrink-0 bg-white flex items-center justify-center border-2 border-primary shadow-md`}>
       <img
-        src={imageSrc}
-        alt="Chatbot Avatar" // More generic alt text
+        src="/assets/images/nurse-niamh.png"
+        alt="Nurse Niamh" // More generic alt text
         className="w-full h-full object-cover"
       />
     </div>

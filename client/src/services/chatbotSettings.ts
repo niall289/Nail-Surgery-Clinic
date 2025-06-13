@@ -1,4 +1,3 @@
-
 interface ChatbotSettings {
   welcomeMessage: string;
   botDisplayName: string;
@@ -7,10 +6,10 @@ interface ChatbotSettings {
 }
 
 const DEFAULT_SETTINGS: ChatbotSettings = {
-  welcomeMessage: "Hello! How can I help you with your foot care needs today?",
-  botDisplayName: "Fiona - FootCare Assistant",
-  ctaButtonLabel: "Ask Fiona",
-  chatbotTone: "Friendly"
+  welcomeMessage: "Hi, I'm Niamh, your assistant at The Nail Surgery Clinic. How can I help with your nail care today?",
+  botDisplayName: "Niamh",
+  ctaButtonLabel: "Ask Niamh", 
+  chatbotTone: "Professional and caring"
 };
 
 let cachedSettings: ChatbotSettings = DEFAULT_SETTINGS;
@@ -19,7 +18,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export async function fetchChatbotSettings(): Promise<ChatbotSettings> {
   const now = Date.now();
-  
+
   // Return cached settings if still fresh
   if (now - lastFetch < CACHE_DURATION && lastFetch > 0) {
     return cachedSettings;
@@ -27,7 +26,7 @@ export async function fetchChatbotSettings(): Promise<ChatbotSettings> {
 
   try {
     console.log('🔄 Fetching chatbot settings from portal...');
-    
+
     const response = await fetch('https://footcareclinicadmin.engageiobots.com/api/chatbot-settings', {
       method: 'GET',
       headers: {
@@ -43,7 +42,7 @@ export async function fetchChatbotSettings(): Promise<ChatbotSettings> {
     }
 
     const settings = await response.json();
-    
+
     // Validate and merge with defaults
     const newSettings = {
       welcomeMessage: settings.welcomeMessage || DEFAULT_SETTINGS.welcomeMessage,
@@ -67,7 +66,7 @@ export async function fetchChatbotSettings(): Promise<ChatbotSettings> {
       if (cachedSettings.chatbotTone !== newSettings.chatbotTone) {
         changes.push(`🎭 Tone: "${cachedSettings.chatbotTone}" → "${newSettings.chatbotTone}"`);
       }
-      
+
       if (changes.length > 0) {
         console.log('🔄 Settings changes detected:', changes);
       }
@@ -76,12 +75,12 @@ export async function fetchChatbotSettings(): Promise<ChatbotSettings> {
     cachedSettings = newSettings;
     lastFetch = now;
     console.log('✅ Portal settings loaded:', cachedSettings);
-    
+
     return cachedSettings;
-    
+
   } catch (error) {
     console.warn('⚠️ Failed to fetch portal settings, using defaults:', error);
-    
+
     // Return cached settings if we have them, otherwise defaults
     return cachedSettings;
   }
