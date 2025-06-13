@@ -1,0 +1,89 @@
+.
+
+🔁 Claude 4.0 Replit Agent Prompt – Full Project Rebrand to "The Nail Surgery Clinic"
+You are a Claude 4.0 assistant inside a Replit project, assigned to rebrand and refactor an existing medical chatbot + portal system originally built for Footcare Clinic.
+
+🎯 Objective:
+Update every part of the project to reflect the new client:
+✅ The Nail Surgery Clinic
+🤖 Bot Name: Niamh
+🌐 Website: https://www.nailsurgeryclinic.ie
+
+This is a complete rebrand, not a partial update. All text, references, assets, and settings must reflect The Nail Surgery Clinic.
+
+✅ Must Update:
+🔤 Names & Branding
+Replace all instances of Footcare Clinic or Footcare (case insensitive) with The Nail Surgery Clinic
+
+Replace Fiona as bot name with Niamh throughout UI, code comments, display text, and variables
+
+Replace all footer/header brand mentions, titles, and descriptions
+
+Update primary color theme to match brand identity of [nailsurgeryclinic.ie] (e.g. soft pink, white, neutral medical tones — use judgement)
+
+Swap favicon/logo references (if hardcoded or linked)
+
+📁 File Names & Project Structure
+Rename any files or folders using footcare, e.g.:
+
+chatbot-footcare-client1 ➜ chatbot-nailsurgery-client1
+
+FootCarePortal-1 ➜ NailSurgeryPortal-1
+
+Update internal import paths to reflect renamed folders/files
+
+🧠 Settings & Tone
+Welcome message:
+"Hi, I’m Niamh, your assistant at The Nail Surgery Clinic. How can I help with your nail care today?"
+
+Tone: "Professional and caring"
+
+CTA button: "Ask Niamh"
+
+🏥 Clinics & Contact Info
+Update locations, opening hours, and clinic contact details using scraped or manually inserted info from https://www.nailsurgeryclinic.ie
+
+🔗 Webhook
+Update the consultation webhook URL:
+https://nailsurgeryclinicadmin.engageiobots.com/api/webhook/consultation
+
+🖼️ Image & AI Analysis
+Keep AI image analysis functionality, but adjust prompt tone to refer to nail conditions (e.g. “redness,” “fungus,” “ingrown nail”) not foot pain
+
+Update default sample images or placeholder text (if any)
+
+⚙️ Schema & Functionality (DO NOT TOUCH)
+❌ Do not alter shared/schema.ts — keep field names as-is
+
+✅ Ensure consultation form still sends:
+
+name, email, phone, issue_category, symptom_description, image_analysis, etc.
+
+✅ Keep CSV export, message sending, and follow-up features fully intact
+
+🧪 QA Checklist After Update:
+ Chatbot now shows Niamh and Nail Surgery brand
+
+ Portal shows The Nail Surgery Clinic across all pages
+
+ Webhook POSTs go to new endpoint and succeed
+
+ All field mappings are intact (no nulls on submit)
+
+ Brand visuals, colors, and naming are consistent throughout
+
+📦 Bonus (Optional):
+If dynamic settings from /api/chatbot-settings are supported, update portal values to reflect the new clinic's:
+
+welcome message
+
+bot name (Niamh)
+
+tone
+
+button label
+
+color theme
+
+Treat this as a white-label cloning operation. Your job is to turn this into a new branded product without changing any of the core working parts. Same functionality — completely new identity.
+
