@@ -45,13 +45,35 @@ export async function fetchChatbotSettings(): Promise<ChatbotSettings> {
     const settings = await response.json();
     
     // Validate and merge with defaults
-    cachedSettings = {
+    const newSettings = {
       welcomeMessage: settings.welcomeMessage || DEFAULT_SETTINGS.welcomeMessage,
       botDisplayName: settings.botDisplayName || DEFAULT_SETTINGS.botDisplayName,
       ctaButtonLabel: settings.ctaButtonLabel || DEFAULT_SETTINGS.ctaButtonLabel,
       chatbotTone: settings.chatbotTone || DEFAULT_SETTINGS.chatbotTone
     };
 
+    // Log changes if settings differ from cache
+    if (cachedSettings) {
+      const changes = [];
+      if (cachedSettings.botDisplayName !== newSettings.botDisplayName) {
+        changes.push(`🏷️ Bot name: "${cachedSettings.botDisplayName}" → "${newSettings.botDisplayName}"`);
+      }
+      if (cachedSettings.welcomeMessage !== newSettings.welcomeMessage) {
+        changes.push(`💬 Welcome message changed`);
+      }
+      if (cachedSettings.ctaButtonLabel !== newSettings.ctaButtonLabel) {
+        changes.push(`🔘 CTA button: "${cachedSettings.ctaButtonLabel}" → "${newSettings.ctaButtonLabel}"`);
+      }
+      if (cachedSettings.chatbotTone !== newSettings.chatbotTone) {
+        changes.push(`🎭 Tone: "${cachedSettings.chatbotTone}" → "${newSettings.chatbotTone}"`);
+      }
+      
+      if (changes.length > 0) {
+        console.log('🔄 Settings changes detected:', changes);
+      }
+    }
+
+    cachedSettings = newSettings;
     lastFetch = now;
     console.log('✅ Portal settings loaded:', cachedSettings);
     
