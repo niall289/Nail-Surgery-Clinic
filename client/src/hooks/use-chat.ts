@@ -52,7 +52,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
 
     try {
       console.log("🚀 Submitting final consultation to webhook");
-      
+
       // Prepare complete payload matching schema
       const payload = {
         name: conversationData.name || "",
@@ -78,21 +78,21 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       };
 
       console.log("📦 Payload being sent:", payload);
-      
+
       const validated = insertConsultationSchema.safeParse(payload);
       if (!validated.success) {
         console.error("❌ Validation failed:", validated.error);
         return;
       }
-      
+
       setHasSubmitted(true);
-      
+
       const response = await fetch("/api/webhook-proxy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(validated.data)
       });
-      
+
       if (response.ok) {
         console.log("✅ Final consultation submitted successfully:", response.status, response.statusText);
       } else {
@@ -109,7 +109,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
     const field = chatStepToField[step];
     const updatedData = { ...userData };
     if (field) updatedData[field] = value;
-    
+
     // Map specific steps to consultation fields
     if (step === 'calendar_booking') {
       updatedData.calendar_booking = value;
@@ -127,14 +127,14 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
     if (step === 'survey_response') {
       updatedData.survey_response = value;
     }
-    
+
     const updatedLog = [...conversationLog, { step, response: value }];
     setConversationLog(updatedLog);
     setUserData(updatedData);
-    
+
     // Save data locally
     onSaveData({ ...updatedData, consultationId, conversationLog: updatedLog }, false);
-    
+
     // Check if this is a completion step that should trigger final submission
     const completionSteps = ['survey_response', 'additional_help', 'final_question'];
     if (completionSteps.includes(step)) {
@@ -311,17 +311,20 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
           // Check if we got a valid analysis or fallback
           if (analysis && analysis.condition && analysis.condition !== "Unable to analyze image at this time") {
             setUserData(prev => {
+              const completedSteps = [...new Set([...prev.completed_steps || [], 'image_upload'])];
               const updated = {
                 ...prev,
                 has_image: "yes",
                 image_path: base64String,
                 image_analysis: JSON.stringify(analysis),
-                footAnalysis: analysis
+                footAnalysis: analysis,
+                completed_steps: completedSteps
               };
               onSaveData({
                 ...updated,
                 consultationId,
-                conversationLog
+                conversationLog,
+                completed_steps: completedSteps
               }, false);
               return updated;
             });
