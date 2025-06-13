@@ -1,0 +1,85 @@
+🧠 Claude 4.0 Replit Agent Prompt — Enable Editable Chatbot Settings from Portal
+You are a Claude 4.0 agent embedded inside a Replit-hosted medical chatbot project.
+Your mission is to allow clinic admins to update core chatbot settings remotely from the connected admin portal — without breaking the chatbot flow, UI, or OpenAI API logic.
+
+🎯 Objective
+Make the chatbot dynamically fetch and use the latest admin-defined settings — such as welcome message, tone, name, and CTA label — by pulling from the portal's API endpoint:
+
+nginx
+Copy
+Edit
+GET https://footcareclinicadmin.engageiobots.com/api/chatbot-settings
+✅ Must Do
+✅ Create a fetchChatbotSettings() function to retrieve portal-defined chatbot config
+
+✅ Apply the fetched values to chatbot behavior at startup:
+
+welcomeMessage → shown on load
+
+botDisplayName → displayed in chat UI
+
+ctaButtonLabel → shown on the chat open button
+
+chatbotTone → used in system prompt for OpenAI
+
+✅ Fall back to default values if the API is unreachable
+
+✅ Refresh settings every 5 minutes to reflect admin updates
+
+✅ Ensure values integrate with:
+
+Chat startup logic
+
+Chatbot display
+
+OpenAI prompt structure
+
+🛑 Do NOT
+❌ Change the chatbot’s core conversation flow or steps
+
+❌ Alter any schema, database models, or webhook logic
+
+❌ Hardcode fixed values that override admin-defined content
+
+❌ Interfere with the OpenAI image analysis logic
+
+🧱 Default Settings Fallback (used if fetch fails)
+ts
+Copy
+Edit
+{
+  welcomeMessage: "Hello! How can I help you with your foot care needs today?",
+  botDisplayName: "Fiona - FootCare Assistant",
+  ctaButtonLabel: "Ask Fiona",
+  chatbotTone: "Friendly"
+}
+🧩 Example Usage After Fetch
+ts
+Copy
+Edit
+const settings = await fetchChatbotSettings();
+const welcomeMessage = settings.welcomeMessage;
+const botName = settings.botDisplayName;
+const buttonLabel = settings.ctaButtonLabel;
+const tone = settings.chatbotTone;
+
+const systemPrompt = `You are ${botName}. Use a ${tone.toLowerCase()} tone in all responses. ${welcomeMessage}`;
+🔁 Bonus: Periodic Refresh
+ts
+Copy
+Edit
+setInterval(async () => {
+  chatbotSettings = await fetchChatbotSettings();
+}, 5 * 60 * 1000); // every 5 minutes
+💬 Live Behavior Controlled from Portal
+The portal will return and control these fields:
+
+welcomeMessage
+
+botDisplayName
+
+ctaButtonLabel
+
+chatbotTone
+
+The chatbot must dynamically display and apply them at runtime.
