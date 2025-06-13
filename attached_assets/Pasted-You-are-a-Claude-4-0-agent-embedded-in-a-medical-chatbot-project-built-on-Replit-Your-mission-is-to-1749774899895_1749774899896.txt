@@ -1,0 +1,98 @@
+You are a Claude 4.0 agent embedded in a medical chatbot project built on Replit. Your mission is to fix the webhook payload once and for all — so that all consultation fields sent to /api/webhook/consultation are populated with real values from the user's interaction, not null.
+
+🔍 Context:
+The chatbot currently sends a POST request to /api/webhook/consultation, but the following fields are always null or empty arrays, despite being collected during the conversation:
+
+symptom_description
+
+issue_specifics
+
+previous_treatment
+
+image_path
+
+image_analysis
+
+calendar_booking
+
+final_question
+
+additional_help
+
+emoji_survey
+
+survey_response
+
+conversation_log
+
+completed_steps
+
+🎯 Objective:
+✅ Ensure that the chatbot’s internal state accurately maps user responses to each of the above fields
+✅ Bind those values to the payload sent via fetch("/api/webhook/consultation") in use-chat.ts
+✅ Validate that null values are replaced with actual strings, arrays, or safe fallbacks ("", [])
+
+✅ Must Happen In:
+File: client/src/hooks/use-chat.ts
+
+Function: The section that builds and sends the final POST payload via fetch("/api/webhook/consultation")
+
+Confirm that you are accessing the correct variables or state (e.g. symptomDescription, selectedSubIssue, imageUrl, aiAnalysis, etc.)
+
+🛠️ What You Must Fix:
+Identify the full internal chatbot state (likely stored in useState, chatStepToField, or similar)
+
+For each field below, map it to the correct variable:
+
+symptom_description ← from user input during symptom step
+
+issue_specifics ← from selected subcategory
+
+previous_treatment ← from history step
+
+has_image ← "true"/"false" based on upload toggle
+
+image_path ← image upload preview URL
+
+image_analysis ← result from OpenAI after upload
+
+calendar_booking ← booking slot (if used)
+
+final_question, additional_help ← from final steps
+
+emoji_survey, survey_response ← from feedback step
+
+conversation_log ← entire chat history array
+
+completed_steps ← array of completed chat step keys
+
+Replace all null values with actual data or safe defaults:
+
+ts
+Copy
+Edit
+symptom_description: symptomDescription || "",
+image_analysis: aiAnalysis || "",
+completed_steps: completedSteps || [],
+✅ Add This For Debugging:
+Just before the fetch() call, log the final payload:
+
+ts
+Copy
+Edit
+console.log("✅ Final webhook payload:", payload);
+⚠️ Do NOT:
+Modify portal code
+
+Remove required fields
+
+Submit if any value is still null that should not be
+
+🧩 Tech Stack:
+React + TypeScript
+
+Vite + TailwindCSS
+
+Express backend
+
+Replit-hosted with webhook to /api/webhook/consultation
