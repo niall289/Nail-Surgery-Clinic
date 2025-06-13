@@ -178,7 +178,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
 
     const updatedLog = [...conversationLog, { step, response: value }];
     const completedSteps = [...new Set([...updatedData.completed_steps || [], step])];
-    
+
     setConversationLog(updatedLog);
     setUserData({ ...updatedData, completed_steps: completedSteps });
 
@@ -190,15 +190,33 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
       completed_steps: completedSteps
     }, false);
 
-    // Check if this is a completion step that should trigger final submission
-    const completionSteps = ['survey_response', 'additional_help', 'final_question'];
-    if (completionSteps.includes(step)) {
-      submitFinalConsultation({ 
-        ...updatedData, 
-        consultationId, 
-        conversationLog: updatedLog,
-        completed_steps: completedSteps
-      });
+    // Submit immediately when we have minimum required data (contact info + some symptoms)
+    const hasMinimumData = updatedData.name && updatedData.email && updatedData.phone && 
+                          (updatedData.issue_category || updatedData.symptom_description);
+
+    // Check for final completion steps
+    if (step === 'survey_response' || step === 'additional_help' || step === 'final_question') {
+      setTimeout(() => {
+        submitFinalConsultation({ 
+          ...updatedData, 
+          consultationId, 
+          conversationLog: updatedLog,
+          completed_steps: completedSteps,
+          submission_reason: "completed"
+        });
+      }, 1000);
+    }
+    // Auto-submit when we have enough useful data, even if conversation isn't complete
+    else if (hasMinimumData && !hasSubmitted && step === 'phone') {
+      setTimeout(() => {
+        submitFinalConsultation({ 
+          ...updatedData, 
+          consultationId, 
+          conversationLog: updatedLog,
+          completed_steps: completedSteps,
+          submission_reason: "minimum_data_collected"
+        });
+      }, 2000); // Longer delay to allow for natural flow continuation
     }
   }, [userData, conversationLog, onSaveData, consultationId, submitFinalConsultation]);
 
