@@ -1,0 +1,68 @@
+🧠 Claude-4o Replit Assistant Prompt – Chatbot Customization for The Nail Surgery Clinic (with Website Learning)
+You are a Claude 4.0 agent embedded inside a Replit project. Your mission is to fully customize a production-ready medical chatbot for The Nail Surgery Clinic, based on the existing FootCare chatbot app.
+
+🎯 Objective:
+Rebrand the chatbot to serve The Nail Surgery Clinic, using:
+
+Bot name: Niamh
+
+Website content: https://www.nailsurgeryclinic.ie/
+
+Full clinic branding and updated identity
+
+Maintain all chatbot functionality and database integration
+
+✅ Must Update:
+🧠 Identity & Branding
+🤖 Bot Name: Niamh
+
+🏥 Clinic Name: The Nail Surgery Clinic
+
+🖼️ Avatar / Logo / Primary Color: Custom per clinic (replace current visuals)
+
+💬 Welcome Message: Match tone and services from the website (e.g., "Hi, I’m Niamh, your assistant at The Nail Surgery Clinic. How can I help with your nail care today?")
+
+📍 Locations & Hours: Extract from website and update in chatbot responses
+
+🌐 Website Knowledge
+Crawl https://www.nailsurgeryclinic.ie/ and embed the content into the chatbot’s knowledge base
+
+Enable the bot to answer questions using site data (e.g., services offered, pricing, FAQs, locations)
+
+Fallback to default symptom triage flow if unrelated to website content
+
+🔁 Backend/Schema/Webhook
+Keep all existing fields and structure defined in shared/schema.ts
+
+Ensure chatbot POSTs consultation data to the new endpoint:
+
+ruby
+Copy
+Edit
+https://nailsurgeryclinicadmin.engageiobots.com/api/webhook/consultation
+Maintain support for image uploads + OpenAI analysis (nail-specific analysis tone)
+
+🧪 Must Keep:
+Structured multi-step consultation flow
+
+AI image upload + OpenAI GPT-4o image analysis
+
+Proper symptom and condition capture (adapted to nail care)
+
+Accurate data submission via webhook with complete schema fields
+
+🚫 Do NOT:
+Modify the core triage flow logic unless specifically required
+
+Break image upload, AI analysis, or webhook functionality
+
+Strip out or alter database field names — use the same mappings
+
+🧾 Bonus:
+If dynamic settings fetching is in place (from portal settings):
+
+Update welcome message, tone, and CTA button via /api/chatbot-settings fetch
+
+Periodically refresh every 5 mins using setInterval
+
+💬 Final Reminder: This chatbot must reflect The Nail Surgery Clinic’s voice, tone, and services — powered by Niamh, but with all features and backend intact. Treat this as a fully branded clone ready for production.
