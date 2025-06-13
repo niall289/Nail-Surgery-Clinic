@@ -69,38 +69,10 @@ import { z } from "zod";
           input: "text",
           validation: (value) => nameSchema.safeParse(value).success,
           errorMessage: "Please enter your name (at least 2 characters)",
-          next: "clinic_location"
+          next: "clinic_info"
         },
-        clinic_location: {
-          message: (userData) => `Hi ${userData.name || 'there'}! Which one of our locations would you prefer to visit for your appointment?`,
-          options: [
-            { text: "Donnycarney", value: "donnycarney" },
-            { text: "Palmerstown", value: "palmerstown" },
-            { text: "Baldoyle", value: "baldoyle" },
-            { text: "Not sure yet", value: "undecided" }
-          ],
-          next: (value) => {
-            if (value === "donnycarney") return "clinic_info_donnycarney";
-            if (value === "palmerstown") return "clinic_info_palmerstown";
-            if (value === "baldoyle") return "clinic_info_baldoyle";
-            if (value === "undecided") return "clinic_info_general";
-            return "upload_prompt";
-          }
-        },
-        clinic_info_donnycarney: {
-          message: "Great choice! Our Donnycarney clinic is located at 65 Collins Ave West, Donnycarney, D09KY03. You can contact us at hello@nailsurgeryclinic.ie or call +353 87 4766949 to book your appointment.",
-          next: "upload_prompt"
-        },
-        clinic_info_palmerstown: {
-          message: "Great choice! Our Palmerstown clinic is open Wednesday & Thursday from 9am-6pm. The address is: Unit 18, First floor, Palmerstown Shopping Centre, Palmerstown Park, Palmerstown, Dublin, D20 HP44",
-          next: "upload_prompt"
-        },
-        clinic_info_baldoyle: {
-          message: "Great choice! Our Baldoyle clinic is open Saturday only from 9am-5pm. The address is: 16 Main Street, Baldoyle, Dublin, D13DC98",
-          next: "upload_prompt"
-        },
-        clinic_info_general: {
-          message: "Great choice! No worries - we can help you decide on the best location during your consultation. All our clinics offer the same high-quality care.",
+        clinic_info: {
+          message: (userData) => `Hi ${userData.name || 'there'}! We're located at 65 Collins Ave West, Donnycarney, D09KY03. You can contact us at hello@nailsurgeryclinic.ie or call +353 87 4766949 to book your appointment.`,
           next: "upload_prompt"
         },
         upload_prompt: {

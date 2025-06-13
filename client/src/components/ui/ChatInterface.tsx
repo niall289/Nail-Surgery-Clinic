@@ -77,25 +77,25 @@ export default function ChatInterface({
   useEffect(() => {
     if (chatContainerRef.current) {
       const lastMessage = messages[messages.length - 1];
-      
+
       // If the last message is an analysis card, scroll to show its top
       if (lastMessage && lastMessage.type === "analysis") {
         // Use a longer timeout to ensure the analysis card is fully rendered
         setTimeout(() => {
           const analysisElements = chatContainerRef.current!.querySelectorAll('[data-analysis-card]');
           const lastAnalysisCard = analysisElements[analysisElements.length - 1] as HTMLElement;
-          
+
           if (lastAnalysisCard) {
             // Get the container's scroll area
             const container = chatContainerRef.current!;
             const containerRect = container.getBoundingClientRect();
             const cardRect = lastAnalysisCard.getBoundingClientRect();
-            
+
             // Calculate the position needed to show the card header at the top
             const currentScrollTop = container.scrollTop;
             const cardTopRelativeToContainer = cardRect.top - containerRect.top;
             const targetScrollTop = currentScrollTop + cardTopRelativeToContainer - 10; // 10px padding from top
-            
+
             // Scroll to position the analysis card header at the top
             container.scrollTo({
               top: Math.max(0, targetScrollTop),
