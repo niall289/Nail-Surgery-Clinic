@@ -110,35 +110,74 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
     const updatedData = { ...userData };
     if (field) updatedData[field] = value;
 
-    // Map specific steps to consultation fields
-    if (step === 'calendar_booking') {
-      updatedData.calendar_booking = value;
-      updatedData.booking_confirmation = value === 'booked' ? 'Confirmed' : 'Pending';
-    }
-    if (step === 'final_question') {
-      updatedData.final_question = value;
-    }
-    if (step === 'additional_help') {
-      updatedData.additional_help = value;
-    }
-    if (step === 'emoji_survey') {
-      updatedData.emoji_survey = value;
-    }
-    if (step === 'survey_response') {
-      updatedData.survey_response = value;
+    // Map ALL consultation fields throughout the flow
+    switch (step) {
+      case 'issue_category':
+        updatedData.issue_category = value;
+        break;
+      case 'structural_specifics':
+      case 'skin_specifics':
+      case 'pain_specifics':
+      case 'nail_specifics':
+      case 'rash_details':
+      case 'fungal_details':
+      case 'pain_details':
+      case 'heel_details':
+      case 'arch_details':
+      case 'toe_details':
+      case 'nail_details':
+        updatedData.issue_specifics = value;
+        break;
+      case 'symptom_description':
+        updatedData.symptom_description = value;
+        break;
+      case 'previous_treatment':
+        updatedData.previous_treatment = value;
+        break;
+      case 'calendar_booking':
+        updatedData.calendar_booking = value;
+        updatedData.booking_confirmation = value === 'booked' ? 'Confirmed' : 'Pending';
+        break;
+      case 'final_question':
+        updatedData.final_question = value;
+        break;
+      case 'additional_help':
+        updatedData.additional_help = value;
+        break;
+      case 'emoji_survey':
+        updatedData.emoji_survey = value;
+        break;
+      case 'survey_response':
+        updatedData.survey_response = value;
+        break;
+      case 'clinic_location':
+        updatedData.preferred_clinic = value;
+        break;
     }
 
     const updatedLog = [...conversationLog, { step, response: value }];
+    const completedSteps = [...new Set([...updatedData.completed_steps || [], step])];
+    
     setConversationLog(updatedLog);
-    setUserData(updatedData);
+    setUserData({ ...updatedData, completed_steps: completedSteps });
 
-    // Save data locally
-    onSaveData({ ...updatedData, consultationId, conversationLog: updatedLog }, false);
+    // Save data locally with all fields
+    onSaveData({ 
+      ...updatedData, 
+      consultationId, 
+      conversationLog: updatedLog,
+      completed_steps: completedSteps
+    }, false);
 
     // Check if this is a completion step that should trigger final submission
     const completionSteps = ['survey_response', 'additional_help', 'final_question'];
     if (completionSteps.includes(step)) {
-      submitFinalConsultation({ ...updatedData, consultationId, conversationLog: updatedLog });
+      submitFinalConsultation({ 
+        ...updatedData, 
+        consultationId, 
+        conversationLog: updatedLog,
+        completed_steps: completedSteps
+      });
     }
   }, [userData, conversationLog, onSaveData, consultationId, submitFinalConsultation]);
 
