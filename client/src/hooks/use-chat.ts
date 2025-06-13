@@ -94,7 +94,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
         conversation_log: Array.isArray(conversationData.conversationLog) ? conversationData.conversationLog : [],
         completed_steps: Array.isArray(conversationData.completed_steps) ? conversationData.completed_steps : [],
         consultationId: consultationId,
-        createdAt: new Date().toISOString()
+        createdAt: new Date()
       };
 
       console.log("✅ Final webhook payload:", payload);
