@@ -26,27 +26,35 @@ import { z } from "zod";
         [key: string]: ChatStep;
       }
 
-      // Helper function for clinic knowledge (placeholder for now)
+      // Helper function for clinic knowledge
       function findRelevantInfo(query: string): string {
         const lowerQuery = query.toLowerCase();
 
         if (lowerQuery.includes('price') || lowerQuery.includes('cost') || lowerQuery.includes('fee')) {
-          return "Our consultation fees vary depending on the treatment needed. During your appointment, our podiatrist will discuss all costs with you before any treatment begins.";
+          return "Our consultation fees vary depending on the treatment needed. We specialize in Partial Nail Avulsion (PNA) and Total Nail Avulsion (TNA) procedures, as well as laser therapy for fungal nails. All costs will be discussed with you before any treatment begins.";
         }
 
         if (lowerQuery.includes('appointment') || lowerQuery.includes('booking')) {
-          return "You can book appointments through our online system or by calling us at 089 9678596. We have locations in Donnycarney, Palmerstown, and Baldoyle.";
+          return "You can contact us at hello@nailsurgeryclinic.ie or call +353 87 4766949 to book your appointment. We're located at 65 Collins Ave West, Donnycarney.";
         }
 
         if (lowerQuery.includes('location') || lowerQuery.includes('address')) {
-          return "We have three locations: Donnycarney (65 Collins Ave West), Palmerstown (Unit 4, Palmerstown Shopping Centre), and Baldoyle (123 Main Street).";
+          return "We're located at 65 Collins Ave West, Donnycarney, D09KY03. You can find us on Google Maps for directions.";
         }
 
-        if (lowerQuery.includes('hours') || lowerQuery.includes('open')) {
-          return "Our hours vary by location: Donnycarney (Mon, Tue, Fri 9am-6pm), Palmerstown (Wed, Thu 9am-6pm), Baldoyle (Mon-Fri 10am-7pm).";
+        if (lowerQuery.includes('procedure') || lowerQuery.includes('surgery') || lowerQuery.includes('pna') || lowerQuery.includes('tna')) {
+          return "We specialize in Partial Nail Avulsion (PNA) and Total Nail Avulsion (TNA) - minor surgical procedures performed in our treatment chair under local anaesthetic. These provide permanent solutions for ingrown and damaged nails.";
         }
 
-        return "Thank you for your question. Our team will be happy to help you with this during your appointment, or you can visit www.nailsurgeryclinic.ie for more information.";
+        if (lowerQuery.includes('laser') || lowerQuery.includes('fungal')) {
+          return "We offer advanced Laser Therapy treatments for stubborn fungal nail infections. This non-invasive photobiomodulation treatment is highly effective for infections resistant to traditional treatments.";
+        }
+
+        if (lowerQuery.includes('time') || lowerQuery.includes('long') || lowerQuery.includes('duration')) {
+          return "Our nail surgery appointments are one hour long, with the actual procedure taking only 15 minutes. The rest of the time is spent on preparation and aftercare, following strict safety and infection-control protocols.";
+        }
+
+        return "Thank you for your question. Our experienced doctors and Foot Health Practitioners will be happy to help you with this during your appointment, or you can visit www.nailsurgeryclinic.ie for more information.";
       }
 
       export const chatFlow: ChatFlow = {
@@ -80,7 +88,7 @@ import { z } from "zod";
           }
         },
         clinic_info_donnycarney: {
-          message: "Great choice! Our Donnycarney clinic is open Monday, Tuesday & Friday from 9am-6pm. The address is: 65 Collins Ave West, Donnycarney, Dublin 9, D09 KY03",
+          message: "Great choice! Our Donnycarney clinic is located at 65 Collins Ave West, Donnycarney, D09KY03. You can contact us at hello@nailsurgeryclinic.ie or call +353 87 4766949 to book your appointment.",
           next: "upload_prompt"
         },
         clinic_info_palmerstown: {
@@ -142,13 +150,66 @@ import { z } from "zod";
         nail_specifics: {
           message: "Which specific nail issue are you experiencing?",
           options: [
-            { text: "Ingrown toenail", value: "ingrown_toenail" },
-            { text: "Fungal infection", value: "fungal_infection" },
+            { text: "Ingrown toenail (may need PNA/TNA)", value: "ingrown_toenail" },
+            { text: "Fungal nail infection", value: "fungal_infection" },
+            { text: "Severely damaged/deformed nail", value: "damaged_nail" },
             { text: "Thickened nails", value: "thickened_nails" },
             { text: "Discolored nails", value: "discolored_nails" },
             { text: "Other nail issue", value: "other_nail_issue" }
           ],
-          next: "symptom_description_prompt"
+          next: (value) => {
+            if (value === "ingrown_toenail") return "ingrown_details";
+            if (value === "fungal_infection") return "fungal_details";
+            if (value === "damaged_nail") return "damaged_nail_details";
+            return "symptom_description_prompt";
+          }
+        },
+        ingrown_details: {
+          message: "How would you describe your ingrown toenail condition?",
+          options: [
+            { text: "Mild pain, first-time occurrence", value: "mild_ingrown" },
+            { text: "Recurring ingrown toenail problem", value: "recurring_ingrown" },
+            { text: "Severe pain with infection/pus", value: "severe_ingrown" },
+            { text: "Previous treatments haven't worked", value: "failed_treatments" },
+            { text: "Multiple toes affected", value: "multiple_ingrown" }
+          ],
+          next: "surgical_consideration"
+        },
+        surgical_consideration: {
+          message: "Based on your description, you may benefit from one of our specialized nail surgery procedures. At The Nail Surgery Clinic, we perform Partial Nail Avulsion (PNA) and Total Nail Avulsion (TNA) - minor surgical procedures done in our treatment chair under local anaesthetic. These provide permanent, safe solutions to recurring ingrown toenails.",
+          next: "symptom_description_prompt",
+          delay: 3000
+        },
+        fungal_details: {
+          message: "How would you describe your fungal nail infection?",
+          options: [
+            { text: "Thick, yellow/discolored nails", value: "thick_yellow" },
+            { text: "Crumbly or brittle nails", value: "crumbly_nails" },
+            { text: "Multiple nails affected", value: "multiple_fungal" },
+            { text: "Previous treatments haven't worked", value: "resistant_fungal" },
+            { text: "Long-standing infection", value: "chronic_fungal" }
+          ],
+          next: "laser_therapy_info"
+        },
+        laser_therapy_info: {
+          message: "For stubborn fungal nail infections, we offer advanced Laser Therapy treatments at our specialized Laser Care Clinic. This non-invasive photobiomodulation treatment is highly effective for fungal nails that are resistant to traditional treatments. Our laser therapy offers a promising alternative to oral medications.",
+          next: "symptom_description_prompt",
+          delay: 3000
+        },
+        damaged_nail_details: {
+          message: "How severely damaged is your nail?",
+          options: [
+            { text: "Heavily damaged/disfigured nail", value: "heavily_damaged" },
+            { text: "Nail trauma/injury", value: "trauma_nail" },
+            { text: "Nail completely detached", value: "detached_nail" },
+            { text: "Chronic nail deformity", value: "chronic_deformity" }
+          ],
+          next: "total_avulsion_info"
+        },
+        total_avulsion_info: {
+          message: "For severely damaged or disfigured nails, our Total Nail Avulsion (TNA) procedure may be the best solution. This involves the safe removal of the entire toenail and is performed routinely in our treatment chair under local anaesthetic. The procedure takes only 15 minutes, with the appointment lasting one hour including preparation and aftercare.",
+          next: "symptom_description_prompt",
+          delay: 3000
         },
         pain_specifics: {
           message: "Where are you experiencing foot pain?",
@@ -450,7 +511,7 @@ import { z } from "zod";
           syncToPortal: true
         },
         booking_thank_you: {
-          message: "We're excited to help you with your foot care needs! You'll receive a confirmation email shortly with all the details. Our team is looking forward to seeing you at your scheduled appointment. For any questions before your visit, please feel free to contact us on 089 9678596.",
+          message: "We're excited to help you with your nail care needs! You'll receive a confirmation email shortly with all the details. Our experienced team of doctors and Foot Health Practitioners look forward to seeing you at your scheduled appointment. For any questions before your visit, please contact us at hello@nailsurgeryclinic.ie or call +353 87 4766949.",
           next: "final_question",
           delay: 2000
         },
@@ -502,7 +563,7 @@ import { z } from "zod";
           }
         },
         thanks: {
-          message: "Thank you for contacting FootCare Clinic! We look forward to helping you feel better soon. Have a great day! 👋",
+          message: "Thank you for contacting The Nail Surgery Clinic! We treat all our clients with respect and patience, giving you the advice and feedback to make the right decision for your foot and hand health. We look forward to helping you feel better soon. Have a great day! 👋",
           next: "emoji_survey",
           delay: 1000
         },
@@ -524,7 +585,7 @@ import { z } from "zod";
             } else if (rating === "okay") {
               return "Thank you for your feedback. We're always looking to improve our service!";
             } else if (rating === "poor") {
-              return "We're sorry your experience wasn't great. Please call us at 089 9678596 so we can make it right.";
+              return "We're sorry your experience wasn't great. Please contact us at hello@nailsurgeryclinic.ie or call +353 87 4766949 so we can make it right.";
             } else {
               return "Thank you for your feedback! We appreciate you taking the time to rate us.";
             }
