@@ -418,45 +418,45 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
           }
           console.log("Analysis result:", analysis);
 
-          // Check if we got a valid analysis or fallback
-          if (analysis && analysis.condition && analysis.condition !== "Unable to analyze image at this time") {
-            setUserData(prev => {
-              const completedSteps = [...new Set([...prev.completed_steps || [], 'image_upload'])];
-              const updated = {
-                ...prev,
-                has_image: "true",
-                image_path: base64String,
-                image_analysis: JSON.stringify(analysis),
-                footAnalysis: analysis,
-                completed_steps: completedSteps
-              };
-              onSaveData({
-                ...updated,
-                consultationId,
-                conversationLog,
-                completed_steps: completedSteps
-              }, false);
-              return updated;
-            });
+          // Always show analysis results, even for fallback
+          setUserData(prev => {
+            const completedSteps = [...new Set([...prev.completed_steps || [], 'image_upload'])];
+            const updated = {
+              ...prev,
+              has_image: "true",
+              image_path: base64String,
+              image_analysis: JSON.stringify(analysis),
+              footAnalysis: analysis,
+              completed_steps: completedSteps
+            };
+            onSaveData({
+              ...updated,
+              consultationId,
+              conversationLog,
+              completed_steps: completedSteps
+            }, false);
+            return updated;
+          });
 
-            addMessage("Analysis complete! Here's what I found:", "bot");
+          addMessage("Analysis complete! Here's what I found:", "bot");
 
+          setTimeout(() => {
+            setMessages(prev => [
+              ...prev,
+              {
+                type: "analysis",
+                text: "",
+                isTyping: false,
+                data: analysis
+              }
+            ]);
+            
             setTimeout(() => {
-              addMessage("", "analysis", false, analysis);
-              setTimeout(() => {
-                const step = chatFlow[currentStep];
-                const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
-                if (nextStepId) processStep(nextStepId);
-              }, 2000);
-            }, 1000);
-          } else {
-            // Handle fallback response
-            console.log("Received fallback analysis, continuing without showing results");
-            addMessage("I'm having trouble analyzing your image right now. Let's continue with describing your symptoms instead.", "bot");
-            setTimeout(() => {
-              processStep("issue_category");
-            }, 1500);
-          }
+              const step = chatFlow[currentStep];
+              const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
+              if (nextStepId) processStep(nextStepId);
+            }, 3000);
+          }, 1000);
 
         } catch (error) {
           console.error("Image analysis error:", error);

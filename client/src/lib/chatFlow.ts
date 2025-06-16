@@ -140,7 +140,7 @@ export const chatFlow: ChatFlow = {
       { text: "Painful, inflamed or pus present", value: "infected" },
       { text: "Tried home treatment with no success", value: "unsuccessful_treatment" }
     ],
-    next: "symptom_description",
+    next: "previous_treatment",
     syncToPortal: true
   },
   fungal_followup: {
@@ -151,7 +151,7 @@ export const chatFlow: ChatFlow = {
       { text: "Nail crumbling or flaking", value: "crumble" },
       { text: "Tried treatments that didn't work", value: "resistant" }
     ],
-    next: "symptom_description",
+    next: "previous_treatment",
     syncToPortal: true
   },
   trauma_followup: {
@@ -162,7 +162,7 @@ export const chatFlow: ChatFlow = {
       { text: "Nail turned black or blue", value: "bruised" },
       { text: "Other injury", value: "other" }
     ],
-    next: "symptom_description",
+    next: "previous_treatment",
     syncToPortal: true
   },
   other_followup: {
@@ -170,7 +170,7 @@ export const chatFlow: ChatFlow = {
     input: "textarea",
     validation: (value) => value.trim().length > 10,
     errorMessage: "Please enter at least 10 characters",
-    next: "symptom_description",
+    next: "previous_treatment",
     syncToPortal: true
   },
   symptom_description_prompt: {
