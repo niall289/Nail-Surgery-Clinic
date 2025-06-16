@@ -5,7 +5,7 @@ interface NurseAvatarProps {
   avatarUrl?: string;
 }
 
-const DEFAULT_AVATAR_SRC = "/assets/images/nurse-niamh.png";
+const DEFAULT_AVATAR_SRC = "./assets/images/nurse-niamh.png";
 
 const NurseAvatar: React.FC<NurseAvatarProps> = ({ size = 'md', avatarUrl }) => {
   const sizeClass = size === 'sm' ? 'h-8 w-8' : size === 'md' ? 'h-12 w-12' : 'h-16 w-16';

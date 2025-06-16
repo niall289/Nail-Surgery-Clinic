@@ -112,7 +112,7 @@ export const chatFlow: ChatFlow = {
   image_analysis: {
     component: "ImageAnalysis",
     delay: 2000,
-    next: "issue_category",
+    next: "symptom_description_prompt",
     syncToPortal: true
   },
   symptom_description: {
@@ -173,7 +173,7 @@ export const chatFlow: ChatFlow = {
     next: "symptom_description",
     syncToPortal: true
   },
-  symptom_description: {
+  symptom_description_prompt: {
     message: "Please describe your symptoms in your own words (when it started, what it feels like, how it affects daily life):",
     input: "textarea",
     validation: (value) => value.trim().length > 10,
