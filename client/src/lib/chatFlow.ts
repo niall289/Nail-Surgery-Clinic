@@ -112,7 +112,7 @@ export const chatFlow: ChatFlow = {
   image_analysis: {
     component: "ImageAnalysis",
     delay: 2000,
-    next: "symptom_description_prompt",
+    next: "issue_category",
     syncToPortal: true
   },
   symptom_description: {

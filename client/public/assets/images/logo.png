@@ -1,4 +1,7 @@
 
-[The uploaded NSC logo image data would be placed here - since I cannot directly process the image file, you'll need to save the uploaded logo as logo.png in the client/public/assets/images/ directory]
-<!-- This is a placeholder. You should replace this with your actual NSC logo -->
-<!-- The logo image should be saved as logo.png in this location -->
+<!-- Simple SVG logo placeholder -->
+<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="60" fill="#0ea5e9" rx="8"/>
+  <text x="100" y="20" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">THE NAIL SURGERY</text>
+  <text x="100" y="40" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10">CLINIC</text>
+</svg>

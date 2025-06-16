@@ -76,15 +76,30 @@ Be specific. Avoid generic responses. No extra commentary outside JSON.
       temperature: 0.2,
     });
 
-    console.log("OpenAI response object:", JSON.stringify(response, null, 2));
-    const analysis = response.choices[0]?.message?.content?.trim();
+    const content = response.choices[0]?.message?.content?.trim();
+    console.log("OpenAI response content:", content);
 
-    if (!analysis) {
-      throw new Error("No content returned from OpenAI");
+    if (!content) {
+      throw new Error("No content in OpenAI response");
+    }
+
+    // Check if OpenAI refused to analyze medical content
+    if (content.includes("I'm sorry") || content.includes("I can't assist") || content.includes("I cannot")) {
+      console.warn("OpenAI refused to analyze medical image, returning fallback");
+      return {
+        condition: "Image analysis completed",
+        severity: "unknown",
+        recommendations: [
+          "Please describe your symptoms in detail",
+          "Contact the clinic for professional assessment",
+          "Book a consultation for proper diagnosis"
+        ],
+        disclaimer: "AI image analysis is not available for this type of image. Please describe your symptoms instead."
+      };
     }
 
     try {
-      const cleaned = analysis.replace(/```json\n?|```/g, "").trim();
+      const cleaned = content.replace(/```json\n?|```/g, "").trim();
       const parsed = JSON.parse(cleaned);
 
       return {
