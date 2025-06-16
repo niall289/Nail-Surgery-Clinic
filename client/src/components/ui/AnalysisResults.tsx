@@ -27,7 +27,10 @@ interface AnalysisResultsProps {
 export default function AnalysisResults({ analysis, className }: AnalysisResultsProps) {
   // Determine if this is an actual analysis or a fallback
   const isFallback = analysis.condition === "Unable to analyze image at this time" || 
+                    analysis.condition === "Analysis completed" ||
+                    analysis.condition === "Unable to analyze image" ||
                     analysis.severity === "unknown" ||
+                    analysis.condition.includes("Unable to") ||
                     analysis.condition === "Image analysis completed";
 
   // Determine severity badge color

@@ -61,7 +61,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
         name: conversationData.name || null,
         email: conversationData.email || null,
         phone: conversationData.phone || null,
-        
+
         // Snake_case fields (current backend expectation)
         preferred_clinic: conversationData.preferred_clinic || null,
         issue_category: conversationData.issue_category || null,
@@ -77,7 +77,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
         additional_help: conversationData.additional_help || null,
         emoji_survey: conversationData.emoji_survey || null,
         survey_response: conversationData.survey_response || null,
-        
+
         // CamelCase variants (for portal compatibility)
         preferredClinic: conversationData.preferred_clinic || null,
         issueCategory: conversationData.issue_category || null,
@@ -91,7 +91,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
         additionalHelp: conversationData.additional_help || null,
         emojiSurvey: conversationData.emoji_survey || null,
         surveyResponse: conversationData.survey_response || null,
-        
+
         // System fields
         conversation_log: Array.isArray(conversationData.conversationLog) ? conversationData.conversationLog : [],
         completed_steps: Array.isArray(conversationData.completed_steps) ? conversationData.completed_steps : [],
@@ -333,12 +333,12 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
   }, [setupStepInput, userData, addMessage]);
 
   useEffect(() => { processStepRef.current = processStep; }, [processStep]);
-  
+
   useEffect(() => {
     // Load chatbot settings on initialization
     fetchChatbotSettings().then(setChatbotSettings);
   }, []);
-  
+
   useEffect(() => { 
     if (messages.length === 0 && chatbotSettings) {
       processStep("welcome");
@@ -482,42 +482,61 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
     }
   }, [onImageUpload, consultationId, currentStep, addMessage, processStep, conversationLog, onSaveData]);
 
-  const handleSymptomAnalysis = useCallback(async (symptoms: string) => {
-    setIsWaitingForResponse(true);
+  const handleSymptomAnalysis = useCallback(async (input: string, type: 'text' | 'image' = 'text') => {
     try {
-      addMessage("Analyzing your symptoms...", "bot");
-      const apiUrl = import.meta.env.VITE_API_URL || '';
-      const response = await fetch(`${apiUrl}/api/analyze-symptoms`, {
+      const endpoint = type === 'image' ? '/api/analyze-foot-image' : '/api/analyze-symptoms';
+      const payload = type === 'image' 
+        ? { imageBase64: input, consultationId }
+        : { symptoms: input, consultationId };
+
+      console.log(`Starting ${type} analysis...`);
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symptoms, consultationId })
+        body: JSON.stringify(payload)
       });
-      if (!response.ok) throw new Error('Symptom analysis failed');
-      const analysis = await response.json();
-      setUserData(prev => {
-        const updated = {
-          ...prev,
-          symptom_description: symptoms,
-          symptom_analysis: JSON.stringify(analysis),
-          symptomAnalysisResults: analysis
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Analysis failed with status ${response.status}:`, errorText);
+        throw new Error(`Analysis failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Analysis result:', result);
+
+      // Ensure we have the expected structure for image analysis
+      if (type === 'image' && result) {
+        return {
+          condition: result.condition || "Analysis completed",
+          severity: result.severity || "unknown",
+          recommendations: result.recommendations || ["Please describe your symptoms"],
+          disclaimer: result.disclaimer || "This is an AI-assisted preliminary assessment."
         };
-        onSaveData({
-          ...updated,
-          consultationId,
-          conversationLog
-        }, false);
-        return updated;
-      });
-      const step = chatFlow[currentStep];
-      const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;
-      if (nextStepId) processStep(nextStepId);
-    } catch (err) {
-      console.error("Symptom analysis error:", err);
-      addMessage("We couldn't analyze your symptoms. Let's continue.", "bot");
-    } finally {
-      setIsWaitingForResponse(false);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Analysis error:', error);
+
+      // Return fallback for image analysis
+      if (type === 'image') {
+        return {
+          condition: "Unable to analyze image at this time",
+          severity: "unknown", 
+          recommendations: [
+            "Please describe your symptoms in detail",
+            "Continue with the consultation",
+            "Visit the clinic for professional assessment"
+          ],
+          disclaimer: "Image analysis is temporarily unavailable. Please continue describing your symptoms."
+        };
+      }
+
+      return null;
     }
-  }, [consultationId, currentStep]);
+  }, [consultationId]);
 
   const validate = useCallback((value: string) => {
     if (!inputType) return { isValid: true };

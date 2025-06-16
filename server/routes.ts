@@ -80,42 +80,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post(`${apiPrefix}/analyze-foot-image`, async (req, res) => {
-    const TIMEOUT_MS = 30000;
+    const TIMEOUT_MS = 15000;
     let sent = false;
 
     const timeout = setTimeout(() => {
       if (!sent) {
         sent = true;
+        console.log("Image analysis timeout reached");
         res.status(408).json({
-          error: "Request timeout",
+          error: "Image analysis timeout",
           fallback: {
-            condition: "Unable to analyze image at this time",
+            condition: "Analysis taking too long",
             severity: "unknown",
-            recommendations: [
-              "Continue with consultation",
-              "Describe symptoms in detail",
-              "Visit a clinic for assessment"
-            ],
+            recommendations: ["Please describe your symptoms instead"],
           },
         });
       }
     }, TIMEOUT_MS);
 
     try {
-      console.log('Processing image analysis request...');
+      console.log("Processing image analysis request...");
       const { imageBase64, consultationId } = req.body;
-      
+
       if (!imageBase64) {
-        console.error("No imageBase64 in request body");
-        throw new Error("Missing imageBase64");
+        console.error("No image data provided");
+        throw new Error("Image data required");
       }
-      
-      console.log('Image data received, length:', imageBase64.length);
-      const cleanImage = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-      console.log('Cleaned image data, calling analyzeFootImage...');
-      
-      const analysis = await analyzeFootImage(cleanImage);
-      console.log('Analysis result from OpenAI service:', analysis);
+
+      console.log("Image data received, length:", imageBase64.length);
+      console.log("Cleaned image data, calling analyzeFootImage...");
+
+      const analysis = await analyzeFootImage(imageBase64);
+
+      console.log("Analysis result from OpenAI service:", analysis);
 
       if (consultationId && !isNaN(parseInt(consultationId))) {
         await storage.updateConsultation(parseInt(consultationId), {
@@ -232,7 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("🔄 Proxying webhook to external server...");
       console.log("📤 Request payload:", JSON.stringify(req.body, null, 2));
-      
+
       const response = await fetch("https://footcareclinicadmin.engageiobots.com/api/webhook/consultation", {
         method: "POST",
         headers: { 
@@ -242,14 +239,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         body: JSON.stringify(req.body)
       });
-      
+
       console.log("📥 Response status:", response.status, response.statusText);
       console.log("📥 Response headers:", Object.fromEntries(response.headers.entries()));
-      
+
       // Get response text first to handle both JSON and HTML
       const responseText = await response.text();
       console.log("📥 Raw response:", responseText.substring(0, 200) + "...");
-      
+
       if (response.ok) {
         try {
           const data = JSON.parse(responseText);
@@ -261,7 +258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         console.error("❌ External webhook failed:", response.status, response.statusText);
-        
+
         // Check if it's HTML error page
         if (responseText.includes('<!DOCTYPE') || responseText.includes('<html>')) {
           console.error("❌ Server returned HTML error page instead of JSON");
@@ -278,7 +275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       console.error("❌ Webhook proxy error:", error);
-      
+
       // Still return success to keep chat flow working
       res.status(200).json({ 
         message: "Webhook attempted", 
