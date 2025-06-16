@@ -24,11 +24,11 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port: 5173,
+    port: 3000, // You can use 5173 or 3000 — either works
     host: true,
-    allowedHosts: [
-          'nailsurgeryclinicadmin.engageiobots.com'
-        ],
+    hmr: {
+      host: "localhost", // ✅ Fix for Replit’s preview domain error
+    },
     proxy: {
       "/api": {
         target: "http://localhost:5000",

@@ -7,7 +7,6 @@ import ImageUploader from "./ImageUploader";
 import NurseAvatar from "./NurseAvatar";
 import PatientJourneyTracker from "./PatientJourneyTracker";
 import AnalysisResults from "./AnalysisResults";
-import { CalendarEmbed } from "./CalendarEmbed";
 import type { Consultation } from "@shared/schema";
 
 interface ChatInterfaceProps {
@@ -22,8 +21,8 @@ interface ChatInterfaceProps {
 }
 
 const DEFAULT_PRIMARY_COLOR = "hsl(186, 100%, 30%)";
-const DEFAULT_BOT_NAME = "Fiona";
-const DEFAULT_AVATAR_URL = "";
+const DEFAULT_BOT_NAME = "Niamh";
+const DEFAULT_AVATAR_URL = "/assets/images/nurse-niamh.png";
 
 export default function ChatInterface({
   consultationId,
@@ -77,26 +76,17 @@ export default function ChatInterface({
   useEffect(() => {
     if (chatContainerRef.current) {
       const lastMessage = messages[messages.length - 1];
-
-      // If the last message is an analysis card, scroll to show its top
       if (lastMessage && lastMessage.type === "analysis") {
-        // Use a longer timeout to ensure the analysis card is fully rendered
         setTimeout(() => {
           const analysisElements = chatContainerRef.current!.querySelectorAll('[data-analysis-card]');
           const lastAnalysisCard = analysisElements[analysisElements.length - 1] as HTMLElement;
-
           if (lastAnalysisCard) {
-            // Get the container's scroll area
             const container = chatContainerRef.current!;
             const containerRect = container.getBoundingClientRect();
             const cardRect = lastAnalysisCard.getBoundingClientRect();
-
-            // Calculate the position needed to show the card header at the top
             const currentScrollTop = container.scrollTop;
             const cardTopRelativeToContainer = cardRect.top - containerRect.top;
-            const targetScrollTop = currentScrollTop + cardTopRelativeToContainer - 10; // 10px padding from top
-
-            // Scroll to position the analysis card header at the top
+            const targetScrollTop = currentScrollTop + cardTopRelativeToContainer - 10;
             container.scrollTo({
               top: Math.max(0, targetScrollTop),
               behavior: 'smooth'
@@ -104,7 +94,6 @@ export default function ChatInterface({
           }
         }, 200);
       } else {
-        // Default behavior: scroll to bottom for all other messages
         setTimeout(() => {
           chatContainerRef.current!.scrollTop = chatContainerRef.current!.scrollHeight;
         }, 100);
@@ -126,10 +115,7 @@ export default function ChatInterface({
       className="w-full md:max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col h-screen md:h-[700px] md:max-h-[90vh] fixed md:static bottom-0 left-0 right-0 md:bottom-auto md:left-auto md:right-auto"
       style={{ fontFamily: "'Inter', sans-serif" }}
     >
-      <div
-        className="px-6 py-4 flex items-center shadow-md"
-        style={{ backgroundColor: primaryColor }}
-      >
+      <div className="px-6 py-4 flex items-center shadow-md" style={{ backgroundColor: primaryColor }}>
         <NurseAvatar size="md" avatarUrl={avatarUrl} />
         <div className="ml-3">
           <h2 className="text-white font-semibold text-lg">
@@ -175,21 +161,6 @@ export default function ChatInterface({
 
           {options && options.length > 0 && (
             <ChatOptions options={options} onSelect={handleOptionSelect} primaryColor={primaryColor} />
-          )}
-
-          {/* 👇 Embedded calendar appears in flow, not at bottom */}
-          {currentStep === "calendar_booking" && (
-            <div className="mt-4">
-              <CalendarEmbed
-                onBookingComplete={() =>
-                  handleOptionSelect({
-                    text: "✅ Done! I've completed my booking",
-                    value: "booked"
-                  })
-                }
-                primaryColor={primaryColor}
-              />
-            </div>
           )}
         </div>
       </div>

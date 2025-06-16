@@ -4,7 +4,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function analyzeFootImage(imageBase64: string): Promise<any> {
+export async function analyzeFootImage(base64: string): Promise<any> {
   try {
     console.log('Starting image analysis...');
 
@@ -24,7 +24,7 @@ export async function analyzeFootImage(imageBase64: string): Promise<any> {
 
     console.log('OpenAI API key found, length:', process.env.OPENAI_API_KEY.length);
 
-    const cleanBase64 = imageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
+    const cleanBase64 = base64.replace(/^data:image\/[a-z]+;base64,/, '');
     console.log('Image cleaned, base64 length:', cleanBase64.length);
 
     if (cleanBase64.length < 100) {
@@ -51,7 +51,7 @@ export async function analyzeFootImage(imageBase64: string): Promise<any> {
           content: [
             {
               type: "text",
-              text: `You are an AI podiatrist assistant analyzing foot conditions with a friendly and professional tone. Examine this foot image and provide a clinical assessment. Return ONLY valid JSON in this exact format:
+              text: `You are an AI podiatrist assistant analyzing foot and nail conditions with a friendly and professional tone. Examine this nail image and provide a clinical assessment. Return ONLY valid JSON in this exact format:
 {
   "condition": "specific condition name and clinical description",
   "severity": "mild | moderate | severe",
@@ -59,13 +59,8 @@ export async function analyzeFootImage(imageBase64: string): Promise<any> {
   "disclaimer": "This assessment is provided for informational purposes. Please consult a qualified podiatrist for treatment."
 }
 
-Provide specific podiatric recommendations including:
-- Immediate care steps
-- Treatment options (topical medications, proper nail cutting techniques, etc.)
-- When to seek professional care
-- Preventive measures
-
-Focus on actionable medical advice for foot conditions. Respond ONLY with JSON, no additional text.`
+Be specific. Avoid generic responses. No extra commentary outside JSON.
+`
             },
             {
               type: "image_url",
@@ -83,11 +78,8 @@ Focus on actionable medical advice for foot conditions. Respond ONLY with JSON, 
 
     console.log("OpenAI response object:", JSON.stringify(response, null, 2));
     const analysis = response.choices[0]?.message?.content?.trim();
-    console.log("Full response from OpenAI:", analysis);
 
     if (!analysis) {
-      console.error("OpenAI returned empty content");
-      console.error("Response choices:", response.choices);
       throw new Error("No content returned from OpenAI");
     }
 
