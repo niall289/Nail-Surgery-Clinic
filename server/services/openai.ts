@@ -51,15 +51,25 @@ export async function analyzeFootImage(base64: string): Promise<any> {
           content: [
             {
               type: "text",
-              text: `You are an AI podiatrist assistant analyzing foot and nail conditions with a friendly and professional tone. Examine this nail image and provide a clinical assessment. Return ONLY valid JSON in this exact format:
+              text: `You are a specialist chiropodist/podiatrist AI assistant conducting a preliminary clinical assessment of nail and foot pathology. Analyze this image using proper podiatric medical terminology and provide a structured clinical evaluation.
+
+Examine for common nail pathologies including:
+- Onychocryptosis (ingrown toenails)
+- Onychomycosis (fungal nail infections) 
+- Nail trauma and hematomas
+- Onychauxis (nail hypertrophy)
+- Paronychia (nail fold infections)
+- Onycholysis (nail separation)
+
+Return ONLY valid JSON in this exact format:
 {
-  "condition": "specific condition name and clinical description",
+  "condition": "Primary differential diagnosis with clinical description using proper medical terminology",
   "severity": "mild | moderate | severe",
-  "recommendations": ["specific treatment advice", "care instructions", "professional follow-up guidance"],
-  "disclaimer": "This assessment is provided for informational purposes. Please consult a qualified podiatrist for treatment."
+  "recommendations": ["Specific chiropodist treatment recommendations", "Clinical care instructions", "Specialist referral guidance if indicated"],
+  "disclaimer": "This is a preliminary chiropodist assessment for informational purposes only. Clinical examination by a qualified podiatrist/chiropodist is required for definitive diagnosis and treatment planning."
 }
 
-Be specific. Avoid generic responses. No extra commentary outside JSON.
+Use precise podiatric terminology. Be clinically specific. No extra commentary outside JSON.
 `
             },
             {
