@@ -8,6 +8,57 @@ import {
 } from "../../../shared/schema";
 import { fetchChatbotSettings, type ChatbotSettings } from "@/services/chatbotSettings";
 
+// Function to determine clinic source based on domain
+function determineClinicSource(hostname: string): string {
+  // Handle Replit domains and custom domains
+  if (hostname.includes('nailsurgery') || hostname.includes('nail-surgery')) {
+    return 'nail_surgery_clinic';
+  } else if (hostname.includes('footcare') || hostname.includes('foot-care')) {
+    return 'footcare_clinic';
+  } else if (hostname.includes('lasercare') || hostname.includes('laser-care')) {
+    return 'lasercare_clinic';
+  }
+
+  // Default fallback based on current chatbot settings
+  return 'nail_surgery_clinic'; // Current default since this is the Nail Surgery Clinic instance
+}
+
+export interface ConversationData {
+  name?: string;
+  email?: string;
+  phone?: string;
+  preferred_clinic?: string;
+  issue_category?: string;
+  issue_specifics?: string;
+  symptom_description?: string;
+  previous_treatment?: string;
+  has_image?: string;
+  image_path?: string;
+  image_analysis?: string;
+  calendar_booking?: string;
+  booking_confirmation?: string;
+  final_question?: string;
+  additional_help?: string;
+  emoji_survey?: string;
+  survey_response?: string;
+  preferredClinic?: string;
+  issueCategory?: string;
+  issueSpecifics?: string;
+  symptomDescription?: string;
+  previousTreatment?: string;
+  imageAnalysis?: string;
+  calendarBooking?: string;
+  bookingConfirmation?: string;
+  finalQuestion?: string;
+  additionalHelp?: string;
+  emojiSurvey?: string;
+  surveyResponse?: string;
+  conversation_log?: { step: string; response: string }[];
+  completed_steps?: string[];
+  consultationId?: number | null;
+  createdAt?: Date;
+}
+
 interface Message {
   text: string;
   type: "bot" | "user" | "analysis";
@@ -450,7 +501,7 @@ export function useChat({ onSaveData, onImageUpload, consultationId }: UseChatPr
                 data: analysis
               }
             ]);
-            
+
             setTimeout(() => {
               const step = chatFlow[currentStep];
               const nextStepId = typeof step.next === 'function' ? step.next("") : step.next;

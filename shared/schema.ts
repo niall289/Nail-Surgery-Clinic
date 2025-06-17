@@ -141,6 +141,8 @@ export const consultations = pgTable("consultations", {
   email: text("email").notNull(),
   phone: text("phone").notNull(),
   preferred_clinic: text("preferred_clinic"),
+  clinic_domain: text("clinic_domain"),
+  clinic_source: text("clinic_source"),
   issue_category: text("issue_category"),
   issue_specifics: text("issue_specifics"),
   symptom_description: text("symptom_description"),
