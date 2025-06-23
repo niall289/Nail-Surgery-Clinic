@@ -1,5 +1,4 @@
-// Nail Surgery Clinic Chatbot Flow (Final Version, Rebased on FootCare Structure)
-// Calendar removed, only nail issues supported, no multi-location logic
+// Nail Surgery Clinic Chatbot Flow (Final Version, Client-Requested Updates Verified)
 
 import { z } from "zod";
 import { nameSchema, phoneSchema, emailSchema } from "../../../shared/schema";
@@ -35,23 +34,18 @@ function findRelevantInfo(query: string): string {
   if (lowerQuery.includes("price") || lowerQuery.includes("cost") || lowerQuery.includes("fee")) {
     return "Surgical procedures range from €550 to €600 depending on the treatment. A €180 deposit is required to secure your appointment. Full pricing will be confirmed during consultation.";
   }
-
   if (lowerQuery.includes("appointment") || lowerQuery.includes("booking")) {
     return "To book, please contact us directly: hello@nailsurgeryclinic.ie or +353 87 4766949. Surgeries take place on Mondays from 2:00–5:40 PM.";
   }
-
   if (lowerQuery.includes("location") || lowerQuery.includes("address")) {
     return "We're located at 65 Collins Ave West, Donnycarney, Dublin 9, D09K0Y3.";
   }
-
   if (lowerQuery.includes("procedure") || lowerQuery.includes("surgery") || lowerQuery.includes("pna") || lowerQuery.includes("tna")) {
     return "We specialize in PNA (Partial Nail Avulsion) and TNA (Total Nail Avulsion) procedures — minor surgeries performed under local anaesthetic. Only one foot is operated on per visit.";
   }
-
   if (lowerQuery.includes("laser") || lowerQuery.includes("fungal")) {
     return "We offer advanced laser therapy for fungal nail infections — ideal for cases resistant to traditional treatments.";
   }
-
   if (lowerQuery.includes("anaesthetic") || lowerQuery.includes("risk")) {
     return "Local anaesthetic is used during surgery. Rare side effects include low blood pressure and irregular heart rhythm. Avoid grapefruit on the day of surgery.";
   }
@@ -70,8 +64,9 @@ export const chatStepToField: { [key: string]: string } = {
   ingrown_followup: "ingrown_followup",
   fungal_followup: "fungal_followup",
   trauma_followup: "trauma_followup",
+  fingernail_followup: "fingernail_followup",
   other_followup: "other_followup",
-  symptom_description: "symptom_description",
+  symptom_description_prompt: "symptom_description",
   previous_treatment: "previous_treatment",
   booking_confirmation: "booking_confirmation",
   final_question: "final_question",
@@ -91,42 +86,20 @@ export const chatFlow: ChatFlow = {
     input: "text",
     validation: (value) => nameSchema.safeParse(value).success,
     errorMessage: "Please enter your name (at least 2 characters)",
-    next: "upload_prompt",
+    next: "name_greeting",
     syncToPortal: true
   },
-  upload_prompt: {
-    message: "Would you like to upload a photo of your foot concern? This can help us provide a better assessment.",
-    options: [
-      { text: "Yes", value: "image_upload" },
-      { text: "No", value: "symptom_description" }
-    ],
-    next: (val) => val,
-    syncToPortal: true
-  },
-  image_upload: {
-    message: "Please upload a clear photo of your nail issue.",
-    imageUpload: true,
-    next: "image_analysis",
-    syncToPortal: true
-  },
-  image_analysis: {
-    component: "ImageAnalysis",
-    delay: 2000,
-    next: "issue_category",
-    syncToPortal: true
-  },
-  symptom_description: {
-    message: "No problem! Please describe your nail concern in a few sentences.",
-    input: "textarea",
-    next: "issue_category",
-    syncToPortal: true
+  name_greeting: {
+    message: (userData) => `Hi ${userData.name} - nice to chat to you.`,
+    next: "issue_category"
   },
   issue_category: {
     message: "What best describes your nail concern?",
     options: [
       { text: "Ingrown toenail", value: "ingrown_followup" },
       { text: "Fungal infection", value: "fungal_followup" },
-      { text: "Nail trauma or injury", value: "trauma_followup" },
+      { text: "Toenail trauma or injury", value: "trauma_followup" },
+      { text: "Finger nail issue or injury", value: "fingernail_followup" },
       { text: "Other/Not sure", value: "other_followup" }
     ],
     next: (val) => val,
@@ -165,6 +138,17 @@ export const chatFlow: ChatFlow = {
     next: "previous_treatment",
     syncToPortal: true
   },
+  fingernail_followup: {
+    message: "What type of injury occurred?",
+    options: [
+      { text: "Dropped something on fingernail", value: "impact" },
+      { text: "Nail lifted or cracked", value: "cracked" },
+      { text: "Nail turned black or blue", value: "bruised" },
+      { text: "Other injury", value: "other" }
+    ],
+    next: "previous_treatment",
+    syncToPortal: true
+  },
   other_followup: {
     message: "Please describe your nail concern in more detail:",
     input: "textarea",
@@ -182,11 +166,40 @@ export const chatFlow: ChatFlow = {
     syncToPortal: true
   },
   previous_treatment: {
-    message: "Have you tried any treatments for this condition before?",
+    message: "Have you had any treatments for this condition before?",
     options: [
       { text: "Yes", value: "yes" },
       { text: "No", value: "no" }
     ],
+    next: (val) => val === "yes" ? "treatment_details" : "upload_prompt",
+    syncToPortal: true
+  },
+  treatment_details: {
+    message: "Please describe some of the treatments you had",
+    input: "textarea",
+    validation: (value) => value.trim().length > 10,
+    errorMessage: "Please enter at least 10 characters",
+    next: "upload_prompt",
+    syncToPortal: true
+  },
+  upload_prompt: {
+    message: "Would you like to upload a photo of your foot concern? This can help us provide a better assessment.",
+    options: [
+      { text: "Yes", value: "image_upload" },
+      { text: "No", value: "email" }
+    ],
+    next: (val) => val,
+    syncToPortal: true
+  },
+  image_upload: {
+    message: "Please upload a clear photo of your nail issue.",
+    imageUpload: true,
+    next: "image_analysis",
+    syncToPortal: true
+  },
+  image_analysis: {
+    component: "ImageAnalysis",
+    delay: 2000,
     next: "email",
     syncToPortal: true
   },
@@ -199,7 +212,7 @@ export const chatFlow: ChatFlow = {
     syncToPortal: true
   },
   phone: {
-    message: "What’s the best number to reach you on?",
+    message: "What's the best number to reach you on?",
     input: "tel",
     validation: (value) => phoneSchema.safeParse(value).success,
     errorMessage: "Please enter a valid phone number",
@@ -207,7 +220,20 @@ export const chatFlow: ChatFlow = {
     syncToPortal: true
   },
   booking_confirmation: {
-    message: (userData) => `Thanks, ${userData.name}! Please now contact the clinic directly to arrange your appointment:\n\n📧 hello@nailsurgeryclinic.ie\n📞 +353 87 4766949\n📍 65 Collins Ave West, Donnycarney, Dublin 9, D09K0Y3\n\nWe’ll take care of everything from there.`,
+    message: (userData) => `Thanks, ${userData.name}!\nWe appreciate the time in explaining your issues.\nWould you like one of our consultants to call you to discuss possible next steps?`,
+    options: [
+      { text: "Yes", value: "yes" },
+      { text: "No", value: "no" }
+    ],
+    next: (val) => val === "yes" ? "callback_yes" : "callback_no",
+    syncToPortal: true
+  },
+  callback_yes: {
+    message: "OK great - we will reach out to you within the next 24 hours.",
+    next: "final_question"
+  },
+  callback_no: {
+    message: "OK no problem - Whenever you are ready you can contact the clinic directly to further discuss or arrange your appointment:\n\n📧 hello@nailsurgeryclinic.ie\n📞 +353 87 4766949\n📍 65 Collins Ave West, Donnycarney, Dublin 9, D09K0Y3\n\nWe’ll take care of everything from there.",
     next: "final_question",
     delay: 1000
   },
@@ -250,10 +276,10 @@ export const chatFlow: ChatFlow = {
   emoji_survey: {
     message: "Before you go, how was your experience today?",
     options: [
-      { text: "😍 Excellent", value: "excellent" },
+      { text: "🥰 Excellent", value: "excellent" },
       { text: "😊 Good", value: "good" },
-      { text: "😐 Okay", value: "okay" },
-      { text: "😞 Poor", value: "poor" }
+      { text: "🙂 Okay", value: "okay" },
+      { text: "😔 Poor", value: "poor" }
     ],
     next: "survey_response",
     syncToPortal: true
@@ -274,7 +300,7 @@ export const chatFlow: ChatFlow = {
     delay: 1000
   },
   end: {
-    message: "💡 Tip: Avoid tight shoes and trim nails straight across to prevent future nail issues. Take care!",
+    message: "🔦 Tip: Avoid tight shoes and trim nails straight across to prevent future nail issues. If the nail in question is inflamed, bathe regularly with warm water and salt. Take care!",
     end: true
   }
 };

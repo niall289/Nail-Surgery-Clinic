@@ -24,10 +24,12 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port: 3000, // You can use 5173 or 3000 — either works
+    port: 3000,
     host: true,
     hmr: {
-      host: "localhost", // ✅ Fix for Replit’s preview domain error
+      protocol: "wss",
+      host: "7e569394-b612-4912-b263-d84cf5cdc840-00-2qpsc2v9pfw9q.kirk.replit.dev",
+      port: 443,
     },
     proxy: {
       "/api": {
@@ -35,5 +37,8 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    allowedHosts: [
+      "7e569394-b612-4912-b263-d84cf5cdc840-00-2qpsc2v9pfw9q.kirk.replit.dev"
+    ]
   },
 });
