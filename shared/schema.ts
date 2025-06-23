@@ -167,9 +167,9 @@ export const chatbotToneEnum = pgEnum('chatbot_tone', ['Friendly', 'Professional
 // Chatbot settings
 export const chatbotSettings = pgTable("chatbot_settings", {
   id: serial("id").primaryKey(),
-  welcomeMessage: text("welcome_message").default("Welcome to FootCare Clinic! Let''s get started."),
-  botDisplayName: varchar("bot_display_name").default("Fiona - FootCare Assistant"),
-  ctaButtonLabel: varchar("cta_button_label").default("Ask Fiona"),
+  welcomeMessage: text("welcome_message").default("👋 Hello! I'm Niamh, your Nail Surgery Clinic virtual assistant. I'll help gather some information about your nail concerns and connect you with our team if needs be. Before we begin, I'll need to collect some basic information. Rest assured, your data is kept private and secure."),
+  botDisplayName: varchar("bot_display_name").default("Niamh"),
+  ctaButtonLabel: varchar("cta_button_label").default("Ask Niamh"),
   chatbotTone: chatbotToneEnum("chatbot_tone").default("Friendly"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
