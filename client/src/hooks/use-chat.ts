@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { chatFlow, chatStepToField } from "../lib/chatflow";
+import { chatFlow, chatStepToField } from "../lib/chatFlow";
 import { Consultation } from "../../../shared/schema";
 import { apiRequest } from "../lib/queryClient";
 
