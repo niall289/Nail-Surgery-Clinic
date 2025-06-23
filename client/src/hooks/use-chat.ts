@@ -47,10 +47,13 @@ export function useChat() {
 
     setIsLoading(true);
 
+    // Store user input data FIRST before processing the message
+    let updatedUserData = userData;
     if (inputValue !== undefined && step.input) {
       const field = chatStepToField[stepKey];
       if (field) {
-        setUserData((prev) => ({ ...prev, [field]: inputValue }));
+        updatedUserData = { ...userData, [field]: inputValue };
+        setUserData(updatedUserData);
 
         if (step.syncToPortal) {
           await apiRequest("/api/webhook/partial", {
@@ -74,8 +77,8 @@ export function useChat() {
     let message: string;
     if (typeof step.message === "function") {
       const dynamicUserInput =
-        inputValue && stepKey !== "name" ? inputValue : userData.userInput;
-      message = step.message({ ...userData, userInput: dynamicUserInput });
+        inputValue && stepKey !== "name" ? inputValue : updatedUserData.userInput;
+      message = step.message({ ...updatedUserData, userInput: dynamicUserInput });
     } else {
       message = step.message;
     }
