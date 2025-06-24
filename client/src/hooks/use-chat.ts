@@ -137,12 +137,11 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
     // Auto-advance to next step if no user input required
     if (step.next && !step.input && !step.options && !step.component && !step.imageUpload) {
       const nextStepKey = typeof step.next === "string" ? step.next : step.next(inputValue || "");
-      const nextStep = chatFlow[nextStepKey as keyof typeof chatFlow];
-      
-      if (nextStep && !nextStep.input && !nextStep.options && !nextStep.component && !nextStep.imageUpload) {
+      if (nextStepKey) {
         // Auto-run steps that don't require user input - add delay to prevent rushing
-        await delay(step.delay || 600);
-        runStep(nextStepKey as keyof typeof chatFlow);
+        setTimeout(() => {
+          runStep(nextStepKey as keyof typeof chatFlow);
+        }, step.delay || 1200);
       }
     }
 
