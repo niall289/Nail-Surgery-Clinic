@@ -132,13 +132,22 @@ export function useChat({
       return;
     }
 
-    const nextKey = typeof step.next === "function" ? step.next(inputValue || "") : step.next;
-    if (nextKey && !chatFlow[nextKey]?.input && !chatFlow[nextKey]?.options && !chatFlow[nextKey]?.component) {
-      await delay(500);
-      runStep(nextKey);
-    } else {
-      setCurrentStep(nextKey);
+    const nextStepKey = typeof step.next === "function" ? step.next(inputValue || "") : step.next;
+    if (nextStepKey) {
+      console.log("👉 Advancing to next step:", nextStepKey);
+      setCurrentStep(nextStepKey); // ✅ Always update the current step
+
+      const nextStep = chatFlow[nextStepKey];
+      if (
+        nextStep &&
+        !nextStep.input &&
+        !nextStep.options &&
+        !nextStep.component
+      ) {
+        runStep(nextStepKey); // ✅ Auto-run only if no input required
+      }
     }
+
 
     // Sync data to portal mid-way
     onSaveData(userData, false);
