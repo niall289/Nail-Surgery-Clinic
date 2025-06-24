@@ -50,15 +50,24 @@ export default function UserInput({
   const handleSubmit = () => {
     if (disabled || !type) return;
 
-    if (validate && value.trim().length > 0) {
-      const result = validate(value);
+    const trimmedValue = value.trim();
+    
+    // Always validate if there's a validation function, regardless of value length
+    if (validate) {
+      const result = validate(trimmedValue);
       if (!result.isValid) {
         setError(result.errorMessage);
         return;
       }
     }
 
-    onSubmit(value);
+    // Don't submit empty values unless validation passed
+    if (trimmedValue.length === 0) {
+      setError("Please enter a value");
+      return;
+    }
+
+    onSubmit(trimmedValue);
     setValue("");
     setError(undefined);
   };

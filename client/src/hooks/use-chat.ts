@@ -67,9 +67,14 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
   };
 
   // Validation function
-  const validate = useCallback((value: string): boolean => {
-    if (!step?.validation) return true;
-    return step.validation(value);
+  const validate = useCallback((value: string): { isValid: boolean; errorMessage?: string } => {
+    if (!step?.validation) return { isValid: true };
+    
+    const isValid = step.validation(value);
+    return {
+      isValid,
+      errorMessage: isValid ? undefined : (step.errorMessage || "Invalid input")
+    };
   }, [step]);
 
   // Run a specific chat step
@@ -124,7 +129,10 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
 
   // Handle user input submission
   const handleUserInput = useCallback(async (value: string) => {
-    if (!step || !validate(value)) return;
+    if (!step) return;
+    
+    const validationResult = validate(value);
+    if (!validationResult.isValid) return;
 
     // Add user message to chat history immediately
     setChatHistory(prev => [...prev, { text: value, type: "user" }]);
