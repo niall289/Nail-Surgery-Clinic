@@ -135,8 +135,7 @@ export function useChat({
     const nextStepKey = typeof step.next === "function" ? step.next(inputValue || "") : step.next;
     if (nextStepKey) {
       console.log("👉 Advancing to next step:", nextStepKey);
-      setCurrentStep(nextStepKey); // ✅ Always update the current step
-
+      
       const nextStep = chatFlow[nextStepKey];
       if (
         nextStep &&
@@ -144,7 +143,17 @@ export function useChat({
         !nextStep.options &&
         !nextStep.component
       ) {
-        runStep(nextStepKey); // ✅ Auto-run only if no input required
+        // Auto-run steps that don't require user input
+        await delay(step.delay || 600);
+        runStep(nextStepKey);
+      } else {
+        // For steps that require input, just set the current step
+        setCurrentStep(nextStepKey);
+        
+        // Set up the UI for the next step
+        if (nextStep?.options) setOptions(nextStep.options);
+        if (nextStep?.input) setInputType(nextStep.input);
+        if (nextStep?.imageUpload) setShowImageUpload(true);
       }
     }
 
