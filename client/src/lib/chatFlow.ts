@@ -91,6 +91,7 @@ export const chatFlow: ChatFlow = {
   },
   name_greeting: {
     message: (userData) => `Hi ${userData.name} - nice to chat to you.`,
+    delay: 800,
     next: "issue_category"
   },
   issue_category: {

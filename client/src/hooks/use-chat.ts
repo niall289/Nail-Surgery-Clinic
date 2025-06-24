@@ -202,8 +202,10 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
 
   // Start the chat
   const startChat = useCallback(() => {
-    runStep("welcome");
-  }, [runStep]);
+    if (chatHistory.length === 0) {
+      runStep("welcome");
+    }
+  }, [runStep, chatHistory.length]);
 
   // Initialize chat on mount
   useEffect(() => {
