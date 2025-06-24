@@ -143,6 +143,14 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
           runStep(nextStepKey as keyof typeof chatFlow);
         }, step.delay || 1200);
       }
+    } else if (step.next && step.input && inputValue !== undefined) {
+      // Handle case where user just provided input - advance to next step
+      const nextStepKey = typeof step.next === "string" ? step.next : step.next(inputValue);
+      if (nextStepKey) {
+        setTimeout(() => {
+          runStep(nextStepKey as keyof typeof chatFlow);
+        }, step.delay || 800);
+      }
     }
 
     scrollToBottom();
