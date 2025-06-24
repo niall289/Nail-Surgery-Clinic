@@ -57,11 +57,15 @@ export function useChat({
     setOptions(null);
     setShowImageUpload(false);
 
+    // Create a temporary variable to hold updated user data
+    let newUserData = { ...userData };
+
     // Save user response
     if (inputValue !== undefined && step.input) {
       const field = chatStepToField[stepKey];
       if (field) {
-        setUserData((prev) => ({ ...prev, [field]: inputValue }));
+        newUserData = { ...userData, [field]: inputValue };
+        setUserData(newUserData);
 
         if (step.syncToPortal) {
           await apiRequest("/api/webhook/partial", {
@@ -81,9 +85,9 @@ export function useChat({
 
     await delay(step.delay || 600);
 
-    // Bot response
+    // Bot response - use newUserData instead of userData
     let message = typeof step.message === "function"
-      ? step.message({ ...userData, userInput: inputValue })
+      ? step.message({ ...newUserData, userInput: inputValue })
       : step.message;
 
     if (step.component === "ImageAnalysis" && imageData) {
@@ -93,7 +97,8 @@ export function useChat({
       });
 
       setFootAnalysis(result);
-      setUserData(prev => ({ ...prev, imageAnalysis: result }));
+      newUserData = { ...newUserData, imageAnalysis: result };
+      setUserData(newUserData);
 
       message = `🧠 Analysis complete:\n\n🦶 Condition: ${result.condition}\n📊 Severity: ${result.severity}\n📝 Recommendations:\n- ${result.recommendations.join(
         "\n- "
@@ -128,7 +133,7 @@ export function useChat({
     // If end step, flag chat as done
     if (step.end) {
       setChatEnded(true);
-      onSaveData(userData, true);
+      onSaveData(newUserData, true);
       return;
     }
 
@@ -168,7 +173,7 @@ export function useChat({
           await delay(300);
           
           const nextMessage = typeof nextStep.message === "function"
-            ? nextStep.message({ ...userData, userInput: inputValue })
+            ? nextStep.message({ ...newUserData, userInput: inputValue })
             : nextStep.message;
             
           setMessages(prev => [...prev, {
@@ -183,7 +188,7 @@ export function useChat({
 
 
     // Sync data to portal mid-way
-    onSaveData(userData, false);
+    onSaveData(newUserData, false);
   }
 
   function handleUserInput(value: string) {
