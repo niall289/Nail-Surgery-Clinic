@@ -33,8 +33,6 @@ export default function ChatInterface({
   botName = '',
   avatarUrl = '',
 }: ChatInterfaceProps) {
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-
   const {
     chatHistory,
     options,
