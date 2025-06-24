@@ -149,7 +149,7 @@ export function useChat({
         !nextStep.component &&
         !nextStep.imageUpload
       ) {
-        // Auto-run steps that don't require user input
+        // Auto-run steps that don't require user input - add delay to prevent rushing
         await delay(step.delay || 600);
         runStep(nextStepKey);
       } else {
