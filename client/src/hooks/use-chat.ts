@@ -141,19 +141,43 @@ export function useChat({
         nextStep &&
         !nextStep.input &&
         !nextStep.options &&
-        !nextStep.component
+        !nextStep.component &&
+        !nextStep.imageUpload
       ) {
         // Auto-run steps that don't require user input
         await delay(step.delay || 600);
         runStep(nextStepKey);
       } else {
-        // For steps that require input, just set the current step
+        // For steps that require input, set the current step and UI state
         setCurrentStep(nextStepKey);
+        
+        // Clear previous UI state
+        setOptions(null);
+        setInputType("text");
+        setShowImageUpload(false);
+        setIsInputDisabled(false);
+        setIsWaitingForResponse(false);
         
         // Set up the UI for the next step
         if (nextStep?.options) setOptions(nextStep.options);
         if (nextStep?.input) setInputType(nextStep.input);
         if (nextStep?.imageUpload) setShowImageUpload(true);
+        
+        // Auto-display the next step's message if it requires input
+        if (nextStep && (nextStep.input || nextStep.options || nextStep.imageUpload)) {
+          await delay(300);
+          
+          const nextMessage = typeof nextStep.message === "function"
+            ? nextStep.message({ ...userData, userInput: inputValue })
+            : nextStep.message;
+            
+          setMessages(prev => [...prev, {
+            sender: "bot",
+            text: nextMessage,
+            step: nextStepKey,
+            type: "bot"
+          }]);
+        }
       }
     }
 
