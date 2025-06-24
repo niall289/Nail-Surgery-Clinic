@@ -36,7 +36,7 @@ export default function ChatInterface({
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const {
-    messages,
+    chatHistory: messages, // ✅ fixed: alias chatHistory to messages
     options,
     inputType,
     showImageUpload,
