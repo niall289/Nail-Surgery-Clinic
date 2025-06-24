@@ -12,7 +12,7 @@ export const queryClient = new QueryClient({
 
 // API request function
 export async function apiRequest(endpoint: string, options: RequestInit = {}) {
-  const url = `${endpoint}`;
+  const url = `${window.location.origin.replace(':5001', ':5173')}${endpoint}`;
 
   const config: RequestInit = {
     headers: {
