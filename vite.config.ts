@@ -1,44 +1,34 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
-  plugins: [
-    react(),
-    runtimeErrorOverlay(),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
-      "@db": path.resolve(import.meta.dirname, "db"),
-      "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "../FootCarePortal-1/shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
-      "@components": path.resolve(import.meta.dirname, "client", "src", "components"),
-      "@components/ui": path.resolve(import.meta.dirname, "client", "src", "components", "ui"),
+      "@": path.resolve(__dirname, "client/src"),
+      "@lib": path.resolve(__dirname, "client/src/lib"),
     },
   },
-  root: path.resolve(import.meta.dirname, "client"),
+  root: "client",
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: "../dist/public",
     emptyOutDir: true,
   },
   server: {
-    port: 3000,
     host: true,
-    hmr: {
-      protocol: "wss",
-      host: "7e569394-b612-4912-b263-d84cf5cdc840-00-2qpsc2v9pfw9q.kirk.replit.dev",
-      port: 443,
-    },
+    port: 3000,
+    strictPort: true,
     proxy: {
       "/api": {
-        target: "http://localhost:5000",
+        target: "https://etea-multi-clinic-portal-nialldmcdowell.replit.app",
         changeOrigin: true,
+        secure: false,
       },
     },
     allowedHosts: [
-      "7e569394-b612-4912-b263-d84cf5cdc840-00-2qpsc2v9pfw9q.kirk.replit.dev"
-    ]
+      "7e569394-b612-4912-b263-d84cf5cdc840-00-2qpsc2v9pfw9q.kirk.replit.dev",
+      "7e569394-b612-4912-b263-d84cf5cdc840-00-2qpsc2v9pfw9q.replit.dev",
+    ],
   },
 });

@@ -1,0 +1,115 @@
+Replit AI Fix-All Master Prompt
+You are the world’s best full-stack developer and chatbot engineer, with expert knowledge of Vite, React, TypeScript, Node.js, Express, PostgreSQL (via Drizzle and Neon), and OpenAI-powered workflows.
+
+I am working on a chatbot project for The Nail Surgery Clinic, built using the following tech stack:
+
+⚙️ Tech Overview
+Frontend: React + Vite + TypeScript + TailwindCSS + TanStack Query + Wouter
+
+Backend: Express + Node.js + TypeScript
+
+Database: PostgreSQL (Neon), using Drizzle ORM
+
+Chatbot Features: Image upload, OpenAI image analysis (gpt-4o), dynamic chat flow logic via chatFlow.ts, synced consultation data
+
+WebSocket: Active, but not critical to fix right now
+
+Deployment: Replit workspace with Vite config tailored to Replit URLs and public dist output
+
+✅ What You Need to Fix
+Fix any import or path errors (e.g., queryClient.ts import issue)
+
+Ensure the chatbot loads and runs end-to-end without breaking the UI or chat logic
+
+The build must pass via npm run build (vite build + esbuild backend)
+
+🔐 Critical File Info
+The vite.config.ts sets:
+
+ts
+Copy
+Edit
+root: "client",
+build.outDir: "../dist/public",
+alias: { "@": path.resolve(__dirname, "client/src") }
+The frontend entry point is client/src/main.tsx, rendered into index.html via <script type="module" src="/src/main.tsx">
+
+The correct path for queryClient.ts is:
+
+bash
+Copy
+Edit
+client/src/lib/queryClient.ts
+All imports should be:
+
+ts
+Copy
+Edit
+import { apiRequest, queryClient } from "@/lib/queryClient";
+Do not touch the backend unless needed. The API endpoints work.
+
+🧩 Chatbot Requirements
+All chat logic lives in chatFlow.ts and is referenced in useChat.ts
+
+Image upload calls /api/analyze-foot-image and parses JSON output into bot messages
+
+Chat is initialized by the "welcome" step and uses a dynamic state-based flow
+
+🛑 ❌ DO NOT DO THE FOLLOWING
+These are hard boundaries. Breaking these will destroy functionality.
+
+❌ DO NOT rename or move any files or folders
+Paths like client/src/lib/queryClient.ts and client/src/hooks/useChat.ts are locked.
+
+❌ DO NOT touch the WebSocket logic yet
+It is being preserved for future use — not now.
+
+❌ DO NOT delete, rename, or modify image analysis logic or routes
+This includes: analyze-foot-image, ImageAnalysis component, imageData, footAnalysis, etc.
+
+❌ DO NOT modify the Vite config except for small fixes
+Keep:
+
+root: "client"
+
+build.outDir: "../dist/public"
+
+resolve.alias "@"
+
+allowedHosts entries for Replit
+
+❌ DO NOT touch any backend routes or the Drizzle schema
+These are synced with the production Neon database and must remain unchanged.
+
+❌ DO NOT restructure or rewire the component tree (Wouter, TanStack, Toaster, etc.)
+
+❌ DO NOT remove or modify the OpenAI analyze-foot-image logic
+It must use base64 from imageData and output formatted results.
+
+❌ DO NOT introduce new frameworks, routers, or plugins
+Stick to the current stack — no React Router, Redux, Zustand, etc.
+
+✅ DO THIS INSTEAD
+✅ Fix only what’s broken — imports, build paths, typos, etc.
+
+✅ Keep file structure exactly as it is
+
+✅ Return full updated files only, not code snippets
+
+✅ Preserve all working chat flow logic and chatbot functionality
+
+✅ Fix the build so npm run build succeeds cleanly
+
+🌍 Portal Sync Info
+Once this chatbot is working, it will sync consultation data to the new multi-clinic portal, temporarily hosted at:
+
+arduino
+Copy
+Edit
+https://etea-multi-clinic-portal-nialldmcdowell.replit.app
+This is accessed via API webhooks and must remain compatible with the existing schema.
+
+Now, analyze the entire setup, scan for any issues, and return only the necessary full file replacements or edits to fully restore the chatbot build and load. No unnecessary rewrites, no framework swaps, no breaking changes.
+
+Let’s go. Fix the app cleanly, quickly, and with no regressions. 🛠️
+

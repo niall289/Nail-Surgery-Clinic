@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { chatFlow, chatStepToField } from "../lib/chatFlow";
+import { chatFlow, chatStepToField } from "@/lib/chatFlow"; // ✅ fixed import casing
 import { Consultation } from "../../../shared/schema";
 import { apiRequest } from "../lib/queryClient";
 
@@ -30,7 +30,12 @@ export function useChat() {
     });
 
   useEffect(() => {
-    if (messages.length === 0) {
+    if (
+      messages.length === 0 &&
+      currentStep === "welcome" &&
+      !chatEnded
+    ) {
+      console.log("🚀 Chat started — calling runStep('welcome')");
       runStep("welcome");
     }
 
@@ -42,18 +47,20 @@ export function useChat() {
   }, []);
 
   async function runStep(stepKey: string, inputValue?: string) {
+    console.log(`➡️ Running step: ${stepKey}, with input: ${inputValue}`);
+
     const step = chatFlow[stepKey];
-    if (!step) return;
+    if (!step) {
+      console.error(`❌ Step '${stepKey}' not found in chatFlow`);
+      return;
+    }
 
     setIsLoading(true);
 
-    // Store user input data FIRST before processing the message
-    let updatedUserData = userData;
     if (inputValue !== undefined && step.input) {
       const field = chatStepToField[stepKey];
       if (field) {
-        updatedUserData = { ...userData, [field]: inputValue };
-        setUserData(updatedUserData);
+        setUserData((prev) => ({ ...prev, [field]: inputValue }));
 
         if (step.syncToPortal) {
           await apiRequest("/api/webhook/partial", {
@@ -77,8 +84,8 @@ export function useChat() {
     let message: string;
     if (typeof step.message === "function") {
       const dynamicUserInput =
-        inputValue && stepKey !== "name" ? inputValue : updatedUserData.userInput;
-      message = step.message({ ...updatedUserData, userInput: dynamicUserInput });
+        inputValue && stepKey !== "name" ? inputValue : userData.userInput;
+      message = step.message({ ...userData, userInput: dynamicUserInput });
     } else {
       message = step.message;
     }
@@ -116,7 +123,18 @@ export function useChat() {
       typeof step.next === "function" ? step.next(inputValue ?? "") : step.next;
 
     if (nextStepKey) {
+      console.log("👉 Advancing to next step:", nextStepKey);
       setCurrentStep(nextStepKey);
+
+      const nextStep = chatFlow[nextStepKey];
+      if (
+        nextStep &&
+        !nextStep.input &&
+        !nextStep.options &&
+        !nextStep.component
+      ) {
+        runStep(nextStepKey);
+      }
     }
   }
 
@@ -125,13 +143,15 @@ export function useChat() {
   }
 
   function restartChat() {
-    setMessages([]);
-    setCurrentStep("welcome");
-    setUserData({});
-    setFootAnalysis(null);
-    setImagePreview(null);
-    setImageData(null);
-    setChatEnded(false);
+    if (currentStep !== "welcome") {
+      setMessages([]);
+      setCurrentStep("welcome");
+      setUserData({});
+      setFootAnalysis(null);
+      setImagePreview(null);
+      setImageData(null);
+      setChatEnded(false);
+    }
   }
 
   function handleImageUpload(file: File) {
