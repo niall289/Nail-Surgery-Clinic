@@ -1,5 +1,7 @@
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import { chatFlow, chatStepToField, type ChatOption } from "@/lib/chatFlow";
+import { apiRequest } from "@/lib/apiRequest";
 import {
   nameSchema,
   phoneSchema,
@@ -7,6 +9,14 @@ import {
   insertConsultationSchema,
 } from "../../../shared/schema";
 import { type ChatbotSettings } from "@/services/chatbotSettings";
+
+// Types for chat messages
+export interface ChatMessage {
+  text: string;
+  type: "bot" | "user";
+  isTyping?: boolean;
+  data?: any;
+}
 
 // Fallback-safe clinic source logic
 function determineClinicSource(hostname: string): string {
@@ -21,21 +31,31 @@ function determineClinicSource(hostname: string): string {
   }
 }
 
-export function useChat() {
-  const [stepKey, setStepKey] = useState<keyof typeof chatFlow>("welcome");
-  const [chatbotSettings] = useState<ChatbotSettings | null>(null); // temporarily disable fetch
-  const [chatHistory, setChatHistory] = useState<{ from: "bot" | "user"; message: string }[]>([]);
-  const [inputValue, setInputValue] = useState("");
-  const [responses, setResponses] = useState<Record<string, any>>({});
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+interface UseChatProps {
+  consultationId: number | null;
+  onSaveData: (data: any, isComplete: boolean) => void;
+  onImageUpload: (file: File) => Promise<string>;
+}
+
+export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
+  const [currentStep, setCurrentStep] = useState<keyof typeof chatFlow>("welcome");
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [userData, setUserData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [inputType, setInputType] = useState<"text" | "email" | "tel" | "textarea">("text");
-  const [options, setOptions] = useState<ChatOption[] | null>(null);
-  const [validation, setValidation] = useState<((value: string) => boolean) | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [allowImageUpload, setAllowImageUpload] = useState(false);
+  const [messageOverride, setMessageOverride] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  const currentStep = chatFlow[stepKey];
+  const chatbotSettings: ChatbotSettings | null = null; // Temporarily disabled
+
+  // Get current step data
+  const step = chatFlow[currentStep];
+  const options = step?.options || null;
+  const inputType = step?.input || "text";
+  const showImageUpload = !!step?.imageUpload;
+  const isInputDisabled = isLoading || !!step?.component;
+  const isWaitingForResponse = isLoading;
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -46,107 +66,157 @@ export function useChat() {
     }, 100);
   };
 
-  const sendMessage = useCallback(
-    async (value: string) => {
-      if (!currentStep) return;
+  // Validation function
+  const validate = useCallback((value: string): boolean => {
+    if (!step?.validation) return true;
+    return step.validation(value);
+  }, [step]);
 
-      const fieldKey = chatStepToField[stepKey];
-      const isValid = currentStep.validation ? currentStep.validation(value) : true;
+  // Run a specific chat step
+  const runStep = useCallback(async (stepKey: keyof typeof chatFlow, inputValue?: string) => {
+    const step = chatFlow[stepKey];
+    if (!step) return;
 
-      if (!isValid) {
-        setChatHistory((prev) => [
-          ...prev,
-          { from: "bot", message: currentStep.errorMessage || "Invalid input" },
-        ]);
-        scrollToBottom();
-        return;
-      }
+    setCurrentStep(stepKey);
+    setIsLoading(true);
 
-      if (fieldKey) {
-        setResponses((prev) => ({ ...prev, [fieldKey]: value }));
-      }
+    // Create a temporary variable to hold updated user data
+    let newUserData = { ...userData };
 
-      setChatHistory((prev) => [...prev, { from: "user", message: value }]);
-      setInputValue("");
+    // Save user response
+    if (inputValue !== undefined && step.input) {
+      const field = chatStepToField[stepKey];
+      if (field) {
+        newUserData = { ...userData, [field]: inputValue };
+        setUserData(newUserData);
 
-      setTimeout(() => {
-        const nextStep =
-          typeof currentStep.next === "function"
-            ? currentStep.next(value)
-            : currentStep.next;
-        if (nextStep) {
-          setStepKey(nextStep as keyof typeof chatFlow);
+        if (step.syncToPortal) {
+          try {
+            await apiRequest("/api/webhook/partial", {
+              method: "POST",
+              body: JSON.stringify({ field, value: inputValue }),
+            });
+          } catch (error) {
+            console.error("Failed to sync to portal:", error);
+          }
         }
-      }, 100);
-    },
-    [currentStep, stepKey]
-  );
+      }
+    }
 
-  const startChat = useCallback(() => {
-    const firstStep = chatFlow["welcome"];
-    const fallbackMessage = "Welcome! How can I assist you today?";
+    // Add user input to chat history if provided
+    if (inputValue !== undefined) {
+      setChatHistory(prev => [...prev, { text: inputValue, type: "user" }]);
+    }
 
-    if (firstStep && typeof firstStep.message === "function") {
-      const message = firstStep.message({}, null);
-      setChatHistory([{ from: "bot", message: message || fallbackMessage }]);
-    } else if (firstStep?.message) {
-      setChatHistory([{ from: "bot", message: firstStep.message || fallbackMessage }]);
-    } else {
-      setChatHistory([{ from: "bot", message: fallbackMessage }]);
+    // Wait for step delay
+    await delay(step.delay || 600);
+
+    // Handle special components
+    if (step.component) {
+      setIsLoading(false);
+      return;
+    }
+
+    // Bot response - use newUserData instead of userData
+    let message = messageOverride;
+    if (!message) {
+      if (typeof step.message === "function") {
+        message = step.message({ ...newUserData, userInput: inputValue }, chatbotSettings);
+      } else {
+        message = step.message;
+      }
+    }
+
+    if (message) {
+      setChatHistory(prev => [...prev, { text: message, type: "bot" }]);
+    }
+
+    setMessageOverride(null);
+    setIsLoading(false);
+
+    // Auto-advance to next step if no user input required
+    if (step.next && !step.input && !step.options && !step.component && !step.imageUpload) {
+      const nextStepKey = typeof step.next === "string" ? step.next : step.next(inputValue || "");
+      const nextStep = chatFlow[nextStepKey as keyof typeof chatFlow];
+      
+      if (nextStep && !nextStep.input && !nextStep.options && !nextStep.component && !nextStep.imageUpload) {
+        // Auto-run steps that don't require user input - add delay to prevent rushing
+        await delay(step.delay || 600);
+        runStep(nextStepKey as keyof typeof chatFlow);
+      }
     }
 
     scrollToBottom();
+  }, [userData, chatbotSettings, messageOverride]);
+
+  // Handle user input submission
+  const handleUserInput = useCallback(async (value: string) => {
+    if (!step || !validate(value)) return;
+
+    const nextStepKey = typeof step.next === "string" ? step.next : step.next?.(value);
+    if (nextStepKey) {
+      await runStep(nextStepKey as keyof typeof chatFlow, value);
+    }
+  }, [step, validate, runStep]);
+
+  // Handle option selection
+  const handleOptionSelect = useCallback(async (option: ChatOption) => {
+    await handleUserInput(option.value);
+  }, [handleUserInput]);
+
+  // Handle image upload
+  const handleImageUpload = useCallback(async (file: File) => {
+    try {
+      setIsLoading(true);
+      const imageData = await onImageUpload(file);
+      
+      // Save image data
+      const newUserData = { ...userData, imagePath: imageData };
+      setUserData(newUserData);
+
+      // Move to next step
+      if (step?.next) {
+        const nextStepKey = typeof step.next === "string" ? step.next : step.next(imageData);
+        await runStep(nextStepKey as keyof typeof chatFlow, imageData);
+      }
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      setMessageOverride("Failed to upload image. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [step, userData, onImageUpload, runStep]);
+
+  // Handle symptom analysis (if needed)
+  const handleSymptomAnalysis = useCallback(() => {
+    // Implementation for symptom analysis if needed
   }, []);
 
-  useEffect(() => {
-    if (!currentStep) return;
+  // Start the chat
+  const startChat = useCallback(() => {
+    runStep("welcome");
+  }, [runStep]);
 
-    const delay = currentStep.delay || 0;
-
-    const showMessage = () => {
-      let msg = "";
-      if (typeof currentStep.message === "function") {
-        msg = currentStep.message(responses, chatbotSettings) || "";
-      } else {
-        msg = currentStep.message || "";
-      }
-
-      if (msg) {
-        setChatHistory((prev) => [...prev, { from: "bot", message: msg }]);
-      }
-
-      setInputType(currentStep.input || "text");
-      setOptions(currentStep.options || null);
-      setValidation(() => currentStep.validation || null);
-      setErrorMessage(currentStep.errorMessage || null);
-      setAllowImageUpload(!!currentStep.imageUpload);
-
-      scrollToBottom();
-    };
-
-    setIsLoading(true);
-    setTimeout(() => {
-      showMessage();
-      setIsLoading(false);
-    }, delay);
-  }, [stepKey]);
-
+  // Initialize chat on mount
   useEffect(() => {
     startChat();
-  }, []);
+  }, [startChat]);
 
   return {
-    chatbotSettings,
-    stepKey,
     chatHistory,
-    inputValue,
-    setInputValue,
-    sendMessage,
-    inputType,
     options,
-    validation,
-    errorMessage,
-    allowImageUpload,
+    inputType,
+    showImageUpload,
+    currentData: userData,
+    isInputDisabled,
+    isWaitingForResponse,
+    handleUserInput,
+    handleOptionSelect,
+    handleImageUpload,
+    handleSymptomAnalysis,
+    validate,
+    currentStep,
+    chatbotSettings,
     chatContainerRef,
   };
 }

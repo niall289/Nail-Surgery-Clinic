@@ -36,7 +36,7 @@ export default function ChatInterface({
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const {
-    chatHistory: messages, // ✅ fixed: alias chatHistory to messages
+    chatHistory,
     options,
     inputType,
     showImageUpload,
@@ -49,7 +49,8 @@ export default function ChatInterface({
     handleSymptomAnalysis,
     validate,
     currentStep,
-    chatbotSettings
+    chatbotSettings,
+    chatContainerRef
   } = useChat({
     consultationId,
     onSaveData: (data, isComplete) => {
@@ -75,7 +76,7 @@ export default function ChatInterface({
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      const lastMessage = messages[messages.length - 1];
+      const lastMessage = chatHistory[chatHistory.length - 1];
       if (lastMessage && lastMessage.type === "analysis") {
         setTimeout(() => {
           const analysisElements = chatContainerRef.current!.querySelectorAll('[data-analysis-card]');
@@ -99,7 +100,7 @@ export default function ChatInterface({
         }, 100);
       }
     }
-  }, [messages, options]);
+  }, [chatHistory, options]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -108,7 +109,7 @@ export default function ChatInterface({
       }
     }, 1600);
     return () => clearTimeout(timer);
-  }, [messages.length]);
+  }, [chatHistory.length]);
 
   return (
     <div
@@ -144,7 +145,7 @@ export default function ChatInterface({
         style={{ paddingBottom: '1rem' }}
       >
         <div className="space-y-3">
-          {messages.map((message, index) => (
+          {chatHistory.map((message, index) => (
             <div key={index}>
               {message.type === "analysis" && message.data ? (
                 <AnalysisResults analysis={message.data} className="animate-fadeIn" />
