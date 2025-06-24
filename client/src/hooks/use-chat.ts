@@ -203,13 +203,15 @@ export function useChat({
           }));
         }
         
-        // Execute the next step
-        if (typeof step.next === "string") {
-          runStep(step.next, trimmedInput);
-        } else if (typeof step.next === "function") {
-          const nextKey = step.next(trimmedInput);
-          runStep(nextKey, trimmedInput);
-        }
+        // Execute the next step after state update completes
+        setTimeout(() => {
+          if (typeof step.next === "string") {
+            runStep(step.next, trimmedInput);
+          } else if (typeof step.next === "function") {
+            const nextKey = step.next(trimmedInput);
+            runStep(nextKey, trimmedInput);
+          }
+        }, 0);
       }
     }
   }
