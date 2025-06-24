@@ -73,7 +73,7 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
   }, [step]);
 
   // Run a specific chat step
-  const runStep = useCallback(async (stepKey: keyof typeof chatFlow) => {
+  const runStep = useCallback(async (stepKey: keyof typeof chatFlow, overrideUserData?: any) => {
     const step = chatFlow[stepKey];
     if (!step) return;
 
@@ -89,11 +89,14 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
       return;
     }
 
+    // Use override data if provided, otherwise use current userData
+    const currentUserData = overrideUserData || userData;
+
     // Bot response
     let message = messageOverride;
     if (!message) {
       if (typeof step.message === "function") {
-        message = step.message(userData, chatbotSettings);
+        message = step.message(currentUserData, chatbotSettings);
       } else {
         message = step.message;
       }
@@ -111,7 +114,7 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
       const nextStepKey = typeof step.next === "string" ? step.next : step.next("");
       if (nextStepKey) {
         setTimeout(() => {
-          runStep(nextStepKey as keyof typeof chatFlow);
+          runStep(nextStepKey as keyof typeof chatFlow, currentUserData);
         }, step.delay || 1200);
       }
     }
@@ -128,8 +131,9 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
 
     // Update userData with the input value
     const field = chatStepToField[currentStep];
+    let newUserData = userData;
     if (field) {
-      const newUserData = { ...userData, [field]: value };
+      newUserData = { ...userData, [field]: value };
       setUserData(newUserData);
 
       // Sync to portal if needed
@@ -148,9 +152,9 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
     // Determine next step
     const nextStepKey = typeof step.next === "string" ? step.next : step.next?.(value);
     if (nextStepKey) {
-      // Wait a moment then run next step
+      // Wait a moment then run next step with updated data
       setTimeout(() => {
-        runStep(nextStepKey as keyof typeof chatFlow);
+        runStep(nextStepKey as keyof typeof chatFlow, newUserData);
       }, 800);
     }
   }, [step, validate, runStep, currentStep, userData]);
