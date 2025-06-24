@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useChatContext } from "@/lib/ChatContext";
 import { apiRequest } from "@/lib/apiRequest";
-import NurseAvatar from "./NurseAvatar";
+import NurseAvatar from "./ui/NurseAvatar";
 
 const ImageAnalysis: React.FC = () => {
   const {
