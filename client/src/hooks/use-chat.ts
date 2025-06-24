@@ -65,6 +65,10 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
     }, 100);
   };
 
+  const updateUserData = useCallback((updates: Record<string, any>) => {
+    setUserData(prev => ({ ...prev, ...updates }));
+  }, []);
+
   // Validation function
   const validate = useCallback((value: string): { isValid: boolean; errorMessage?: string } => {
     if (!step?.validation) return { isValid: true };
@@ -174,41 +178,40 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
   // Handle image upload
   const handleImageUpload = useCallback(async (file: File) => {
     try {
-      setIsWaitingForResponse(true);
+      setIsLoading(true);
 
       const reader = new FileReader();
       reader.onload = async (e) => {
         const base64String = e.target?.result as string;
 
-        // Store the image data
-        updateUserData({ 
+        // Update userData with image data
+        const newUserData = { 
+          ...userData,
           imagePath: base64String,
           hasImage: "yes" 
-        });
+        };
+        setUserData(newUserData);
 
         // Add user message to chat
-        const newMessage: ChatMessage = {
+        setChatHistory(prev => [...prev, {
           text: "📷 Image uploaded successfully",
-          type: "user",
-          isTyping: false,
-          data: null,
-        };
+          type: "user"
+        }]);
 
-        setChatHistory(prev => [...prev, newMessage]);
+        setIsLoading(false);
 
-        // Move to image analysis step immediately
-        setIsWaitingForResponse(false);
+        // Move to image analysis step with the updated data
         setTimeout(() => {
-          runStep("image_analysis");
-        }, 100);
+          runStep("image_analysis", newUserData);
+        }, 500);
       };
 
       reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error uploading image:", error);
-      setIsWaitingForResponse(false);
+      setIsLoading(false);
     }
-  }, [userData, runStep]);
+  }, [userData, runStep, setUserData]);
 
   // Handle symptom analysis (if needed)
   const handleSymptomAnalysis = useCallback(() => {
@@ -243,5 +246,6 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
     currentStep,
     chatbotSettings,
     chatContainerRef,
+    updateUserData,
   };
 }
