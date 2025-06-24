@@ -73,40 +73,12 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
   }, [step]);
 
   // Run a specific chat step
-  const runStep = useCallback(async (stepKey: keyof typeof chatFlow, inputValue?: string) => {
+  const runStep = useCallback(async (stepKey: keyof typeof chatFlow) => {
     const step = chatFlow[stepKey];
     if (!step) return;
 
     setCurrentStep(stepKey);
     setIsLoading(true);
-
-    // Create a temporary variable to hold updated user data
-    let newUserData = { ...userData };
-
-    // Save user response
-    if (inputValue !== undefined && step.input) {
-      const field = chatStepToField[stepKey];
-      if (field) {
-        newUserData = { ...userData, [field]: inputValue };
-        setUserData(newUserData);
-
-        if (step.syncToPortal) {
-          try {
-            await apiRequest("/api/webhook/partial", {
-              method: "POST",
-              body: JSON.stringify({ field, value: inputValue }),
-            });
-          } catch (error) {
-            console.error("Failed to sync to portal:", error);
-          }
-        }
-      }
-    }
-
-    // Add user input to chat history if provided
-    if (inputValue !== undefined) {
-      setChatHistory(prev => [...prev, { text: inputValue, type: "user" }]);
-    }
 
     // Wait for step delay
     await delay(step.delay || 600);
@@ -117,11 +89,11 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
       return;
     }
 
-    // Bot response - use newUserData instead of userData
+    // Bot response
     let message = messageOverride;
     if (!message) {
       if (typeof step.message === "function") {
-        message = step.message({ ...newUserData, userInput: inputValue }, chatbotSettings);
+        message = step.message(userData, chatbotSettings);
       } else {
         message = step.message;
       }
@@ -136,20 +108,11 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
 
     // Auto-advance to next step if no user input required
     if (step.next && !step.input && !step.options && !step.component && !step.imageUpload) {
-      const nextStepKey = typeof step.next === "string" ? step.next : step.next(inputValue || "");
+      const nextStepKey = typeof step.next === "string" ? step.next : step.next("");
       if (nextStepKey) {
-        // Auto-run steps that don't require user input - add delay to prevent rushing
         setTimeout(() => {
           runStep(nextStepKey as keyof typeof chatFlow);
         }, step.delay || 1200);
-      }
-    } else if (step.next && step.input && inputValue !== undefined) {
-      // Handle case where user just provided input - advance to next step
-      const nextStepKey = typeof step.next === "string" ? step.next : step.next(inputValue);
-      if (nextStepKey) {
-        setTimeout(() => {
-          runStep(nextStepKey as keyof typeof chatFlow);
-        }, step.delay || 800);
       }
     }
 
@@ -160,11 +123,37 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
   const handleUserInput = useCallback(async (value: string) => {
     if (!step || !validate(value)) return;
 
+    // Add user message to chat history immediately
+    setChatHistory(prev => [...prev, { text: value, type: "user" }]);
+
+    // Update userData with the input value
+    const field = chatStepToField[currentStep];
+    if (field) {
+      const newUserData = { ...userData, [field]: value };
+      setUserData(newUserData);
+
+      // Sync to portal if needed
+      if (step.syncToPortal) {
+        try {
+          await apiRequest("/api/webhook/partial", {
+            method: "POST",
+            body: JSON.stringify({ field, value }),
+          });
+        } catch (error) {
+          console.error("Failed to sync to portal:", error);
+        }
+      }
+    }
+
+    // Determine next step
     const nextStepKey = typeof step.next === "string" ? step.next : step.next?.(value);
     if (nextStepKey) {
-      await runStep(nextStepKey as keyof typeof chatFlow, value);
+      // Wait a moment then run next step
+      setTimeout(() => {
+        runStep(nextStepKey as keyof typeof chatFlow);
+      }, 800);
     }
-  }, [step, validate, runStep]);
+  }, [step, validate, runStep, currentStep, userData]);
 
   // Handle option selection
   const handleOptionSelect = useCallback(async (option: ChatOption) => {
