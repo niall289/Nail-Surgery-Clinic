@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { chatFlow, chatStepToField, type ChatOption } from "@/lib/chatFlow";
 import { apiRequest } from "@/lib/apiRequest";
@@ -69,7 +68,7 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
   // Validation function
   const validate = useCallback((value: string): { isValid: boolean; errorMessage?: string } => {
     if (!step?.validation) return { isValid: true };
-    
+
     const isValid = step.validation(value);
     return {
       isValid,
@@ -130,7 +129,7 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
   // Handle user input submission
   const handleUserInput = useCallback(async (value: string) => {
     if (!step) return;
-    
+
     const validationResult = validate(value);
     if (!validationResult.isValid) return;
 
@@ -175,25 +174,41 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
   // Handle image upload
   const handleImageUpload = useCallback(async (file: File) => {
     try {
-      setIsLoading(true);
-      const imageData = await onImageUpload(file);
-      
-      // Save image data
-      const newUserData = { ...userData, imagePath: imageData };
-      setUserData(newUserData);
+      setIsWaitingForResponse(true);
 
-      // Move to next step
-      if (step?.next) {
-        const nextStepKey = typeof step.next === "string" ? step.next : step.next(imageData);
-        await runStep(nextStepKey as keyof typeof chatFlow, imageData);
-      }
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64String = e.target?.result as string;
+
+        // Store the image data
+        updateUserData({ 
+          imagePath: base64String,
+          hasImage: "yes" 
+        });
+
+        // Add user message to chat
+        const newMessage: ChatMessage = {
+          text: "📷 Image uploaded successfully",
+          type: "user",
+          isTyping: false,
+          data: null,
+        };
+
+        setChatHistory(prev => [...prev, newMessage]);
+
+        // Move to image analysis step immediately
+        setIsWaitingForResponse(false);
+        setTimeout(() => {
+          runStep("image_analysis");
+        }, 100);
+      };
+
+      reader.readAsDataURL(file);
     } catch (error) {
-      console.error("Image upload failed:", error);
-      setMessageOverride("Failed to upload image. Please try again.");
-    } finally {
-      setIsLoading(false);
+      console.error("Error uploading image:", error);
+      setIsWaitingForResponse(false);
     }
-  }, [step, userData, onImageUpload, runStep]);
+  }, [userData, runStep]);
 
   // Handle symptom analysis (if needed)
   const handleSymptomAnalysis = useCallback(() => {

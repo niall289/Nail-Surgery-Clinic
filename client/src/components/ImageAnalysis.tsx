@@ -18,7 +18,7 @@ const ImageAnalysis: React.FC = () => {
 
       if (!imagePath || imagePath.length < 100) {
         setMessageOverride("⚠️ No valid image found. Please try uploading again.");
-        handleNextStep();
+        setTimeout(() => handleNextStep(), 1000);
         return;
       }
 
@@ -37,13 +37,15 @@ const ImageAnalysis: React.FC = () => {
 
         updateUserData({ imageAnalysisResults: response });
         setMessageOverride(resultText);
+        
+        setIsLoading(false);
+        setTimeout(() => handleNextStep(), 2000);
       } catch (error) {
         console.error("Image analysis error:", error);
         setMessageOverride("⚠️ Image analysis failed. Please describe your symptoms manually.");
+        setIsLoading(false);
+        setTimeout(() => handleNextStep(), 1500);
       }
-
-      setIsLoading(false);
-      setTimeout(() => handleNextStep(), 3000);
     };
 
     analyzeImage();
