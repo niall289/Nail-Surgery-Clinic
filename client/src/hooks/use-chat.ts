@@ -190,7 +190,26 @@ export function useChat({
     if (!isInputDisabled && !chatEnded && value.trim().length > 0) {
       const validationResult = validate(value);
       if (validationResult.isValid) {
-        runStep(currentStep, value);
+        const step = chatFlow[currentStep];
+        const trimmedInput = value.trim();
+        
+        // Save the input to userData
+        const field = chatStepToField[currentStep];
+        if (field) {
+          setUserData((prev) => ({
+            ...prev,
+            [field]: trimmedInput,
+            userInput: trimmedInput,
+          }));
+        }
+        
+        // Execute the next step
+        if (typeof step.next === "string") {
+          runStep(step.next, trimmedInput);
+        } else if (typeof step.next === "function") {
+          const nextKey = step.next(trimmedInput);
+          runStep(nextKey, trimmedInput);
+        }
       }
     }
   }
