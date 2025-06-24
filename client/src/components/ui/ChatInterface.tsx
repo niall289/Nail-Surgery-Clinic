@@ -30,8 +30,8 @@ export default function ChatInterface({
   onCreateConsultation,
   onUpdateConsultation,
   primaryColor = DEFAULT_PRIMARY_COLOR,
-  botName = DEFAULT_BOT_NAME,
-  avatarUrl = DEFAULT_AVATAR_URL,
+  botName = '',
+  avatarUrl = '',
 }: ChatInterfaceProps) {
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -116,10 +116,10 @@ export default function ChatInterface({
       style={{ fontFamily: "'Inter', sans-serif" }}
     >
       <div className="px-6 py-4 flex items-center shadow-md" style={{ backgroundColor: primaryColor }}>
-        <NurseAvatar size="md" avatarUrl={avatarUrl} />
+        <NurseAvatar size="md" avatarUrl={avatarUrl || DEFAULT_AVATAR_URL} />
         <div className="ml-3">
           <h2 className="text-white font-semibold text-lg">
-            {chatbotSettings?.botDisplayName || botName}
+            {chatbotSettings?.botDisplayName || botName || DEFAULT_BOT_NAME}
           </h2>
           <p className="text-white opacity-80 text-sm">The Nail Surgery Clinic Assistant</p>
         </div>

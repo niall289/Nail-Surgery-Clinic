@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { chatFlow, chatStepToField } from "@/lib/chatFlow"; // ✅ fixed import casing
+import { chatFlow, chatStepToField, type ChatOption } from "@/lib/chatFlow";
 import { Consultation } from "../../../shared/schema";
 import { apiRequest } from "../lib/queryClient";
 
@@ -8,55 +8,56 @@ interface ChatMessage {
   sender: "bot" | "user";
   text: string;
   step?: string;
+  isTyping?: boolean;
+  type?: "bot" | "user" | "analysis";
+  data?: any;
 }
 
-export function useChat() {
+export function useChat({
+  consultationId,
+  onSaveData,
+  onImageUpload,
+}: {
+  consultationId: number | null;
+  onSaveData: (data: Partial<Consultation>, isComplete: boolean) => void;
+  onImageUpload: (file: File) => Promise<string>;
+}) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentStep, setCurrentStep] = useState("welcome");
-  const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<Partial<Consultation>>({});
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [chatEnded, setChatEnded] = useState(false);
   const [imageData, setImageData] = useState<string | null>(null);
   const [footAnalysis, setFootAnalysis] = useState<any | null>(null);
-  const [chatEnded, setChatEnded] = useState(false);
+  const [chatbotSettings, setChatbotSettings] = useState<any | null>(null);
+  const [options, setOptions] = useState<ChatOption[] | null>(null);
+  const [inputType, setInputType] = useState<"text" | "email" | "phone" | "longtext">("text");
+  const [isInputDisabled, setIsInputDisabled] = useState(false);
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
+  const [showImageUpload, setShowImageUpload] = useState(false);
   const timeoutRef = useRef<number | null>(null);
 
-  const queryClient = useQueryClient();
-
-  const delay = (ms: number) =>
-    new Promise((resolve) => {
-      timeoutRef.current = window.setTimeout(resolve, ms);
-    });
+  const delay = (ms: number) => new Promise(resolve => {
+    timeoutRef.current = window.setTimeout(resolve, ms);
+  });
 
   useEffect(() => {
-    if (
-      messages.length === 0 &&
-      currentStep === "welcome" &&
-      !chatEnded
-    ) {
-      console.log("🚀 Chat started — calling runStep('welcome')");
-      runStep("welcome");
-    }
+    runStep("welcome");
 
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
   async function runStep(stepKey: string, inputValue?: string) {
-    console.log(`➡️ Running step: ${stepKey}, with input: ${inputValue}`);
-
     const step = chatFlow[stepKey];
-    if (!step) {
-      console.error(`❌ Step '${stepKey}' not found in chatFlow`);
-      return;
-    }
+    if (!step) return;
 
-    setIsLoading(true);
+    setIsInputDisabled(true);
+    setIsWaitingForResponse(true);
+    setOptions(null);
+    setShowImageUpload(false);
 
+    // Save user response
     if (inputValue !== undefined && step.input) {
       const field = chatStepToField[stepKey];
       if (field) {
@@ -65,30 +66,25 @@ export function useChat() {
         if (step.syncToPortal) {
           await apiRequest("/api/webhook/partial", {
             method: "POST",
-            body: JSON.stringify({
-              field,
-              value: inputValue,
-            }),
+            body: JSON.stringify({ field, value: inputValue }),
           });
         }
       }
 
-      setMessages((prev) => [
-        ...prev,
-        { sender: "user", text: inputValue, step: stepKey },
-      ]);
+      setMessages(prev => [...prev, {
+        sender: "user",
+        text: inputValue,
+        step: stepKey,
+        type: "user"
+      }]);
     }
 
     await delay(step.delay || 600);
 
-    let message: string;
-    if (typeof step.message === "function") {
-      const dynamicUserInput =
-        inputValue && stepKey !== "name" ? inputValue : userData.userInput;
-      message = step.message({ ...userData, userInput: dynamicUserInput });
-    } else {
-      message = step.message;
-    }
+    // Bot response
+    let message = typeof step.message === "function"
+      ? step.message({ ...userData, userInput: inputValue })
+      : step.message;
 
     if (step.component === "ImageAnalysis" && imageData) {
       const result = await apiRequest("/api/analyze-foot-image", {
@@ -97,87 +93,100 @@ export function useChat() {
       });
 
       setFootAnalysis(result);
-      setUserData((prev) => ({
-        ...prev,
-        imageAnalysis: result,
-      }));
+      setUserData(prev => ({ ...prev, imageAnalysis: result }));
 
       message = `🧠 Analysis complete:\n\n🦶 Condition: ${result.condition}\n📊 Severity: ${result.severity}\n📝 Recommendations:\n- ${result.recommendations.join(
         "\n- "
       )}\n\n⚠️ Disclaimer: ${result.disclaimer}`;
+
+      setMessages(prev => [...prev, {
+        sender: "bot",
+        text: message,
+        step: stepKey,
+        type: "analysis",
+        data: result
+      }]);
+    } else {
+      setMessages(prev => [...prev, {
+        sender: "bot",
+        text: message,
+        step: stepKey,
+        type: "bot"
+      }]);
     }
 
-    setMessages((prev) => [
-      ...prev,
-      { sender: "bot", text: message, step: stepKey },
-    ]);
+    setCurrentStep(stepKey);
 
-    setIsLoading(false);
+    // Handle input UI state
+    if (step.options) setOptions(step.options);
+    if (step.input) setInputType(step.input);
+    if (step.component === "ImageUpload") setShowImageUpload(true);
 
+    setIsInputDisabled(false);
+    setIsWaitingForResponse(false);
+
+    // If end step, flag chat as done
     if (step.end) {
       setChatEnded(true);
+      onSaveData(userData, true);
       return;
     }
 
-    const nextStepKey =
-      typeof step.next === "function" ? step.next(inputValue ?? "") : step.next;
-
-    if (nextStepKey) {
-      console.log("👉 Advancing to next step:", nextStepKey);
-      setCurrentStep(nextStepKey);
-
-      const nextStep = chatFlow[nextStepKey];
-      if (
-        nextStep &&
-        !nextStep.input &&
-        !nextStep.options &&
-        !nextStep.component
-      ) {
-        runStep(nextStepKey);
-      }
+    const nextKey = typeof step.next === "function" ? step.next(inputValue || "") : step.next;
+    if (nextKey && !chatFlow[nextKey]?.input && !chatFlow[nextKey]?.options && !chatFlow[nextKey]?.component) {
+      await delay(500);
+      runStep(nextKey);
+    } else {
+      setCurrentStep(nextKey);
     }
+
+    // Sync data to portal mid-way
+    onSaveData(userData, false);
   }
 
   function handleUserInput(value: string) {
-    runStep(currentStep, value);
+    if (!isInputDisabled && !chatEnded) {
+      runStep(currentStep, value);
+    }
   }
 
-  function restartChat() {
-    if (currentStep !== "welcome") {
-      setMessages([]);
-      setCurrentStep("welcome");
-      setUserData({});
-      setFootAnalysis(null);
-      setImagePreview(null);
-      setImageData(null);
-      setChatEnded(false);
+  function handleOptionSelect(option: ChatOption) {
+    if (!isInputDisabled && !chatEnded) {
+      runStep(currentStep, option.value);
     }
   }
 
   function handleImageUpload(file: File) {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setImageData(base64String);
-      setImagePreview(base64String);
+    setIsInputDisabled(true);
+    setShowImageUpload(false);
+    setIsWaitingForResponse(true);
+
+    onImageUpload(file).then((base64) => {
+      setImageData(base64);
       runStep(currentStep, "uploaded");
-    };
-    reader.readAsDataURL(file);
+    });
+  }
+
+  function validate(input: string): boolean {
+    if (inputType === "email") return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+    if (inputType === "phone") return /^[0-9+\-\s()]{7,}$/.test(input);
+    return input.length > 0;
   }
 
   return {
     messages,
-    isLoading,
-    chatEnded,
-    userData,
-    footAnalysis,
-    imagePreview,
     currentStep,
-    uploadingImage,
-    setUploadingImage,
+    inputType,
+    options,
+    isInputDisabled,
+    isWaitingForResponse,
+    showImageUpload,
+    currentData: userData,
+    footAnalysis,
+    chatbotSettings,
     handleUserInput,
-    restartChat,
+    handleOptionSelect,
     handleImageUpload,
+    validate
   };
 }
-`

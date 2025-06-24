@@ -9,36 +9,36 @@ export default function Chat() {
   const [consultationId, setConsultationId] = useState<number | null>(null);
   const [isEmbedded, setIsEmbedded] = useState(false);
   const [botConfig, setBotConfig] = useState({
-    botName: 'Fiona',
-    avatarUrl: '',
-    welcomeMessage: '',
-    primaryColor: 'hsl(186, 100%, 30%)',
-    clinicLocation: 'all',
+    botName: "Niamh",
+    avatarUrl: "https://nailsurgeryclinic.engageiobots.com/assets/images/nurse-niamh.png",
+    welcomeMessage: "",
+    primaryColor: "hsl(186, 100%, 30%)",
+    clinicLocation: "all",
     allowImageUpload: true,
   });
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const embedded = urlParams.get('embedded');
+    const embedded = urlParams.get("embedded");
 
-    if (embedded === 'true') {
+    if (embedded === "true") {
       setIsEmbedded(true);
 
-      const name = urlParams.get('botName');
-      const avatar = urlParams.get('avatarUrl');
-      const welcome = urlParams.get('welcomeMessage');
-      const color = urlParams.get('primaryColor');
-      const location = urlParams.get('clinicLocation');
-      const imageUpload = urlParams.get('allowImageUpload');
+      const name = urlParams.get("botName");
+      const avatar = urlParams.get("avatarUrl");
+      const welcome = urlParams.get("welcomeMessage");
+      const color = urlParams.get("primaryColor");
+      const location = urlParams.get("clinicLocation");
+      const imageUpload = urlParams.get("allowImageUpload");
 
-      setBotConfig(prevConfig => ({
+      setBotConfig((prevConfig) => ({
         ...prevConfig,
         botName: name || prevConfig.botName,
         avatarUrl: avatar || prevConfig.avatarUrl,
         welcomeMessage: welcome || prevConfig.welcomeMessage,
         primaryColor: color || prevConfig.primaryColor,
         clinicLocation: location || prevConfig.clinicLocation,
-        allowImageUpload: imageUpload !== 'false',
+        allowImageUpload: imageUpload !== "false",
       }));
     }
   }, []);
@@ -50,7 +50,7 @@ export default function Chat() {
     },
     onSuccess: (data) => {
       setConsultationId(data.id);
-      queryClient.invalidateQueries({ queryKey: ['/api/consultations'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/consultations"] });
     },
     onError: (error) => {
       toast({
@@ -58,16 +58,16 @@ export default function Chat() {
         description: `Failed to create consultation: ${error.message}`,
         variant: "destructive",
       });
-    }
+    },
   });
 
   const updateConsultation = useMutation({
-    mutationFn: async ({ id, data }: { id: number, data: Partial<Consultation> }) => {
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Consultation> }) => {
       const res = await apiRequest("PATCH", `/api/consultations/${id}`, data);
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/consultations', consultationId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/consultations", consultationId] });
     },
     onError: (error) => {
       toast({
@@ -75,11 +75,11 @@ export default function Chat() {
         description: `Failed to update consultation: ${error.message}`,
         variant: "destructive",
       });
-    }
+    },
   });
 
   const { data: consultation } = useQuery<Consultation>({
-    queryKey: ['/api/consultations', consultationId],
+    queryKey: ["/api/consultations", consultationId],
     queryFn: async () => {
       if (!consultationId) return undefined;
       const res = await apiRequest("GET", `/api/consultations/${consultationId}`);
@@ -99,15 +99,21 @@ export default function Chat() {
   };
 
   return (
-    <div className={`${isEmbedded ? 'bg-transparent' : 'bg-gray-100 min-h-screen'} flex flex-col justify-center items-center ${isEmbedded ? 'p-0' : 'p-4 md:p-0'}`}>
+    <div
+      className={`${
+        isEmbedded ? "bg-transparent" : "bg-gray-100 min-h-screen"
+      } flex flex-col justify-center items-center ${
+        isEmbedded ? "p-0" : "p-4 md:p-0"
+      }`}
+    >
       <ChatInterface
         consultationId={consultationId}
         consultation={consultation}
         onCreateConsultation={(data) => {
-          if (isEmbedded && botConfig.clinicLocation !== 'all') {
+          if (isEmbedded && botConfig.clinicLocation !== "all") {
             handleCreateConsultation({
               ...data,
-              preferred_clinic: botConfig.clinicLocation
+              preferred_clinic: botConfig.clinicLocation,
             });
           } else {
             handleCreateConsultation(data);
