@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useChatContext } from "@/lib/ChatContext";
+import { useChatContext } from "@/components/lib/ChatContext";
 import { apiRequest } from "@/lib/apiRequest";
 import NurseAvatar from "./ui/NurseAvatar";
 
