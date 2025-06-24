@@ -187,8 +187,11 @@ export function useChat({
   }
 
   function handleUserInput(value: string) {
-    if (!isInputDisabled && !chatEnded) {
-      runStep(currentStep, value);
+    if (!isInputDisabled && !chatEnded && value.trim().length > 0) {
+      const validationResult = validate(value);
+      if (validationResult.isValid) {
+        runStep(currentStep, value);
+      }
     }
   }
 
@@ -209,10 +212,29 @@ export function useChat({
     });
   }
 
-  function validate(input: string): boolean {
-    if (inputType === "email") return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
-    if (inputType === "phone") return /^[0-9+\-\s()]{7,}$/.test(input);
-    return input.length > 0;
+  function validate(input: string): { isValid: boolean; errorMessage?: string } {
+    const step = chatFlow[currentStep];
+    
+    if (step?.validation) {
+      const isValid = step.validation(input);
+      return {
+        isValid,
+        errorMessage: isValid ? undefined : step.errorMessage || "Invalid input"
+      };
+    }
+    
+    if (inputType === "email") {
+      const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+      return { isValid, errorMessage: isValid ? undefined : "Please enter a valid email address" };
+    }
+    
+    if (inputType === "phone") {
+      const isValid = /^[0-9+\-\s()]{7,}$/.test(input);
+      return { isValid, errorMessage: isValid ? undefined : "Please enter a valid phone number" };
+    }
+    
+    const isValid = input.trim().length > 0;
+    return { isValid, errorMessage: isValid ? undefined : "This field is required" };
   }
 
   return {
