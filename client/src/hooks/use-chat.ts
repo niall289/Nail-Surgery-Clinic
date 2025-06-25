@@ -40,6 +40,8 @@ function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
   const [currentStep, setCurrentStep] = useState<keyof typeof chatFlow>("welcome");
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userData, setUserData] = useState<Record<string, any>>({});
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [messageOverride, setMessageOverride] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -293,4 +295,3 @@ function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
 }
 
 export default useChat;
-
