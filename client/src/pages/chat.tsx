@@ -1,9 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 import ChatInterface from "@/components/ui/ChatInterface";
-import { ChatProvider } from "@/components/lib/ChatContext";
+import useChat from "@/hooks/use-chat";
 import type { Consultation } from "@shared/schema";
 
 export default function Chat() {
@@ -99,6 +100,30 @@ export default function Chat() {
     }
   };
 
+  const handleSaveData = (data: any, isComplete: boolean) => {
+    if (isComplete) {
+      handleCreateConsultation(data);
+    } else {
+      handleUpdateConsultation(data);
+    }
+  };
+
+  const handleImageUpload = async (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        resolve(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const chatHook = useChat({
+    consultationId,
+    onSaveData: handleSaveData,
+    onImageUpload: handleImageUpload,
+  });
+
   return (
     <div
       className={`${
@@ -107,27 +132,26 @@ export default function Chat() {
         isEmbedded ? "p-0" : "p-4 md:p-0"
       }`}
     >
-      <ChatProvider>
-        <ChatInterface
-          consultationId={consultationId}
-          consultation={consultation}
-          onCreateConsultation={(data) => {
-            if (isEmbedded && botConfig.clinicLocation !== "all") {
-              handleCreateConsultation({
-                ...data,
-                preferred_clinic: botConfig.clinicLocation,
-              });
-            } else {
-              handleCreateConsultation(data);
-            }
-          }}
-          onUpdateConsultation={handleUpdateConsultation}
-          botName={botConfig.botName}
-          avatarUrl={botConfig.avatarUrl}
-          welcomeMessage={botConfig.welcomeMessage}
-          primaryColor={botConfig.primaryColor}
-        />
-      </ChatProvider>
+      <ChatInterface
+        {...chatHook}
+        consultationId={consultationId}
+        consultation={consultation}
+        onCreateConsultation={(data) => {
+          if (isEmbedded && botConfig.clinicLocation !== "all") {
+            handleCreateConsultation({
+              ...data,
+              preferred_clinic: botConfig.clinicLocation,
+            });
+          } else {
+            handleCreateConsultation(data);
+          }
+        }}
+        onUpdateConsultation={handleUpdateConsultation}
+        botName={botConfig.botName}
+        avatarUrl={botConfig.avatarUrl}
+        welcomeMessage={botConfig.welcomeMessage}
+        primaryColor={botConfig.primaryColor}
+      />
     </div>
   );
 }

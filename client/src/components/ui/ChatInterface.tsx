@@ -1,11 +1,11 @@
 
 import React, { useEffect, useState, useRef } from "react";
-import { useChatContext } from "@/components/lib/ChatContext";
 import { AnalysisResults } from "./AnalysisResults";
 import { PatientJourneyTracker } from "./PatientJourneyTracker";
 import NurseAvatar from "./NurseAvatar";
 import { CameraIcon, Loader2, SendHorizonal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { ChatMessage, ChatOption } from "@/hooks/use-chat";
 
 interface ChatInterfaceProps {
   consultationId?: number | null;
@@ -16,9 +16,27 @@ interface ChatInterfaceProps {
   avatarUrl?: string;
   welcomeMessage?: string;
   primaryColor?: string;
+  
+  // Props from use-chat hook
+  chatHistory: ChatMessage[];
+  options: ChatOption[] | null;
+  inputType: string;
+  showImageUpload: boolean;
+  currentData: Record<string, any>;
+  isInputDisabled: boolean;
+  isWaitingForResponse: boolean;
+  handleUserInput: (input: string) => void;
+  handleOptionSelect: (option: ChatOption) => void;
+  handleImageUpload: (file: File) => void;
+  handleSymptomAnalysis: () => void;
+  validate: (value: string) => { isValid: boolean; errorMessage?: string };
+  currentStep: string;
+  chatbotSettings: any;
+  chatContainerRef: React.RefObject<HTMLDivElement>;
+  updateUserData: (updates: Record<string, any>) => void;
 }
 
-export default function ChatInterface(props: ChatInterfaceProps = {}) {
+export default function ChatInterface(props: ChatInterfaceProps) {
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -34,7 +52,7 @@ export default function ChatInterface(props: ChatInterfaceProps = {}) {
     handleOptionSelect,
     handleImageUpload,
     chatContainerRef,
-  } = useChatContext();
+  } = props;
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && inputValue.trim()) {
