@@ -293,3 +293,4 @@ function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
 }
 
 export default useChat;
+
