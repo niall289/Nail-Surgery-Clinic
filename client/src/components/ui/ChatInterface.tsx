@@ -3,6 +3,7 @@ import React, { useRef, useEffect } from "react";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import ImageUpload from "@/components/ui/ImageUploader";
 import AnalysisResults from "@/components/ui/AnalysisResults";
+import ChatMessage from "@/components/ui/ChatMessage";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import NurseAvatar from "@/components/ui/NurseAvatar";
@@ -63,22 +64,20 @@ export default function ChatInterface({ consultationId, onSaveData, onImageUploa
       {/* Chat Messages */}
       <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {chatHistory.map((msg, index) => (
-          <div key={index} className={`flex ${msg.type === "bot" ? "justify-start" : "justify-end"}`}>
-            <div
-              className={`max-w-sm px-4 py-2 rounded-lg shadow-sm text-sm ${
-                msg.type === "bot"
-                  ? "bg-gray-100 text-gray-800 rounded-bl-none"
-                  : msg.type === "analysis"
-                  ? "bg-blue-50 border border-blue-200 rounded-lg"
-                  : "bg-blue-600 text-white rounded-br-none"
-              }`}
-            >
-              {msg.type === "analysis" && msg.data ? (
-                <AnalysisResults analysis={msg.data} />
-              ) : (
-                msg.text
-              )}
-            </div>
+          <div key={index}>
+            {msg.type === "analysis" && msg.data ? (
+              <div className="flex justify-start">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-sm">
+                  <AnalysisResults analysis={msg.data} />
+                </div>
+              </div>
+            ) : (
+              <ChatMessage
+                message={msg.text}
+                type={msg.type}
+                primaryColor="hsl(174, 86%, 36%)"
+              />
+            )}
           </div>
         ))}
         <div ref={messagesEndRef} />
