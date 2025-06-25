@@ -1,4 +1,3 @@
-
 export async function apiRequest(url: string, options: RequestInit = {}) {
   const response = await fetch(url, {
     headers: {
@@ -12,5 +11,11 @@ export async function apiRequest(url: string, options: RequestInit = {}) {
     throw new Error(`API request failed: ${response.statusText}`);
   }
 
-  return response.json();
+  const text = await response.text();
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("Invalid JSON response");
+  }
 }

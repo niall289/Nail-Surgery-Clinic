@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { chatFlow, chatStepToField, type ChatOption } from "@/lib/chatFlow";
-import { apiRequest } from "@/lib/apiRequest";
+import { apiRequest } from "@/components/lib/apiRequest";
 import {
   nameSchema,
   phoneSchema,
@@ -9,15 +9,13 @@ import {
 } from "../../../shared/schema";
 import { type ChatbotSettings } from "@/services/chatbotSettings";
 
-// Types for chat messages
 export interface ChatMessage {
   text: string;
-  type: "bot" | "user";
+  type: "bot" | "user" | "analysis";
   isTyping?: boolean;
   data?: any;
 }
 
-// Fallback-safe clinic source logic
 function determineClinicSource(hostname: string): string {
   if (hostname.includes("nailsurgery") || hostname.includes("nail-surgery")) {
     return "nail_surgery_clinic";
@@ -38,7 +36,7 @@ interface UseChatProps {
   onImageUpload: (file: File) => Promise<string>;
 }
 
-export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
+function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
   const [currentStep, setCurrentStep] = useState<keyof typeof chatFlow>("welcome");
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userData, setUserData] = useState<Record<string, any>>({});
@@ -46,9 +44,8 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
   const [messageOverride, setMessageOverride] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  const chatbotSettings: ChatbotSettings | null = null; // Temporarily disabled
+  const chatbotSettings: ChatbotSettings | null = null;
 
-  // Get current step data
   const step = chatFlow[currentStep];
   const options = step?.options || null;
   const inputType = step?.input || "text";
@@ -69,10 +66,8 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
     setUserData(prev => ({ ...prev, ...updates }));
   }, []);
 
-  // Validation function
   const validate = useCallback((value: string): { isValid: boolean; errorMessage?: string } => {
     if (!step?.validation) return { isValid: true };
-
     const isValid = step.validation(value);
     return {
       isValid,
@@ -80,7 +75,6 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
     };
   }, [step]);
 
-  // Run a specific chat step
   const runStep = useCallback(async (stepKey: keyof typeof chatFlow, overrideUserData?: any) => {
     const step = chatFlow[stepKey];
     if (!step) return;
@@ -88,19 +82,76 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
     setCurrentStep(stepKey);
     setIsLoading(true);
 
-    // Wait for step delay
     await delay(step.delay || 600);
 
-    // Handle special components
+    if (stepKey === "image_analysis") {
+      const currentUserData = overrideUserData || userData;
+      const imageBase64 = currentUserData.imagePath;
+
+      setChatHistory(prev => [
+        ...prev,
+        { text: "🧠 Thank you for your image - our AI is analyzing it now...", type: "bot" },
+      ]);
+
+      try {
+        const result = await apiRequest("/api/analyze-foot-image", {
+          method: "POST",
+          body: JSON.stringify({ imageBase64 }),
+        });
+
+        console.log("🔍 Image analysis result:", result);
+
+        if (result?.condition && result?.severity && result?.recommendations) {
+          updateUserData({ imageAnalysisResults: result });
+
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "analysis",
+              text: "AI diagnosis results",
+              data: result,
+            },
+          ]);
+        } else {
+          setChatHistory(prev => [
+            ...prev,
+            {
+              type: "bot",
+              text: `⚠️ Image analysis could not return valid results. Please continue describing your symptoms.`,
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error("❌ Image analysis error:", error);
+        setChatHistory(prev => [
+          ...prev,
+          {
+            type: "bot",
+            text: `⚠️ Our image analysis service is temporarily unavailable. Please continue with describing your symptoms.`,
+          },
+        ]);
+      }
+
+      setIsLoading(false);
+
+      const nextStepKey = typeof step.next === "string" ? step.next : step.next?.("");
+      if (nextStepKey) {
+        setTimeout(() => {
+          runStep(nextStepKey as keyof typeof chatFlow, currentUserData);
+        }, 1200);
+      }
+
+      scrollToBottom();
+      return;
+    }
+
     if (step.component) {
       setIsLoading(false);
       return;
     }
 
-    // Use override data if provided, otherwise use current userData
     const currentUserData = overrideUserData || userData;
 
-    // Bot response
     let message = messageOverride;
     if (!message) {
       if (typeof step.message === "function") {
@@ -117,7 +168,6 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
     setMessageOverride(null);
     setIsLoading(false);
 
-    // Auto-advance to next step if no user input required
     if (step.next && !step.input && !step.options && !step.component && !step.imageUpload) {
       const nextStepKey = typeof step.next === "string" ? step.next : step.next("");
       if (nextStepKey) {
@@ -130,52 +180,49 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
     scrollToBottom();
   }, [userData, chatbotSettings, messageOverride]);
 
-  // Handle user input submission
   const handleUserInput = useCallback(async (value: string) => {
     if (!step) return;
 
     const validationResult = validate(value);
     if (!validationResult.isValid) return;
 
-    // Add user message to chat history immediately
     setChatHistory(prev => [...prev, { text: value, type: "user" }]);
 
-    // Update userData with the input value
     const field = chatStepToField[currentStep];
     let newUserData = userData;
+
     if (field) {
       newUserData = { ...userData, [field]: value };
       setUserData(newUserData);
 
-      // Sync to portal if needed
       if (step.syncToPortal) {
         try {
-          await apiRequest("/api/webhook/partial", {
+          const res = await apiRequest("/api/webhook/partial", {
             method: "POST",
             body: JSON.stringify({ field, value }),
           });
+
+          if (!res || typeof res !== "object") {
+            throw new Error("Non-JSON response from portal sync");
+          }
         } catch (error) {
-          console.error("Failed to sync to portal:", error);
+          console.warn("⚠️ Portal sync failed, continuing anyway.");
         }
       }
     }
 
-    // Determine next step
     const nextStepKey = typeof step.next === "string" ? step.next : step.next?.(value);
     if (nextStepKey) {
-      // Wait a moment then run next step with updated data
       setTimeout(() => {
         runStep(nextStepKey as keyof typeof chatFlow, newUserData);
       }, 800);
     }
   }, [step, validate, runStep, currentStep, userData]);
 
-  // Handle option selection
   const handleOptionSelect = useCallback(async (option: ChatOption) => {
     await handleUserInput(option.value);
   }, [handleUserInput]);
 
-  // Handle image upload
   const handleImageUpload = useCallback(async (file: File) => {
     try {
       setIsLoading(true);
@@ -184,15 +231,14 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
       reader.onload = async (e) => {
         const base64String = e.target?.result as string;
 
-        // Update userData with image data
-        const newUserData = { 
+        const newUserData = {
           ...userData,
           imagePath: base64String,
-          hasImage: "yes" 
+          hasImage: "yes",
         };
+
         setUserData(newUserData);
 
-        // Add user message to chat
         setChatHistory(prev => [...prev, {
           text: "📷 Image uploaded successfully",
           type: "user"
@@ -200,10 +246,9 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
 
         setIsLoading(false);
 
-        // Move to image analysis step with the updated data
         setTimeout(() => {
           runStep("image_analysis", newUserData);
-        }, 500);
+        }, 600);
       };
 
       reader.readAsDataURL(file);
@@ -211,21 +256,18 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
       console.error("Error uploading image:", error);
       setIsLoading(false);
     }
-  }, [userData, runStep, setUserData]);
+  }, [userData, runStep]);
 
-  // Handle symptom analysis (if needed)
   const handleSymptomAnalysis = useCallback(() => {
-    // Implementation for symptom analysis if needed
+    // Reserved for future use
   }, []);
 
-  // Start the chat
   const startChat = useCallback(() => {
     if (chatHistory.length === 0) {
       runStep("welcome");
     }
   }, [runStep, chatHistory.length]);
 
-  // Initialize chat on mount
   useEffect(() => {
     startChat();
   }, [startChat]);
@@ -249,3 +291,5 @@ export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatPr
     updateUserData,
   };
 }
+
+export default useChat;

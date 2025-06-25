@@ -1,186 +1,104 @@
-import { useEffect, useRef } from "react";
-import { useChat } from "@/hooks/use-chat";
-import ChatMessage from "./ChatMessage";
-import ChatOptions from "./ChatOptions";
-import UserInput from "./UserInput";
-import ImageUploader from "./ImageUploader";
-import NurseAvatar from "./NurseAvatar";
-import PatientJourneyTracker from "./PatientJourneyTracker";
-import AnalysisResults from "./AnalysisResults";
-import type { Consultation } from "@shared/schema";
+import React, { useRef, useEffect } from "react";
+import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import ImageUpload from "@/components/ui/ImageUploader";
+import AnalysisResults from "@/components/ui/AnalysisResults";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import NurseAvatar from "@/components/ui/NurseAvatar";
+import useChat from "@/hooks/use-chat"; // ✅ FIXED: Direct import
 
-interface ChatInterfaceProps {
-  consultationId: number | null;
-  consultation: Consultation | undefined;
-  onCreateConsultation: (data: Partial<Consultation>) => void;
-  onUpdateConsultation: (data: Partial<Consultation>) => void;
-  primaryColor?: string;
-  botName?: string;
-  avatarUrl?: string;
-  welcomeMessage?: string;
-}
-
-const DEFAULT_PRIMARY_COLOR = "hsl(186, 100%, 30%)";
-const DEFAULT_BOT_NAME = "Niamh";
-const DEFAULT_AVATAR_URL = "/assets/images/nurse-niamh.png";
-
-export default function ChatInterface({
-  consultationId,
-  consultation,
-  onCreateConsultation,
-  onUpdateConsultation,
-  primaryColor = DEFAULT_PRIMARY_COLOR,
-  botName = '',
-  avatarUrl = '',
-}: ChatInterfaceProps) {
+export default function ChatInterface({ consultationId, onSaveData, onImageUpload }) {
   const {
-    chatHistory,
-    options,
-    inputType,
-    showImageUpload,
-    currentData,
-    isInputDisabled,
-    isWaitingForResponse,
-    handleUserInput,
-    handleOptionSelect,
-    handleImageUpload,
-    handleSymptomAnalysis,
-    validate,
-    currentStep,
+    input,
+    setInput,
+    messages,
+    handleSendMessage,
+    uploading,
     chatbotSettings,
-    chatContainerRef
-  } = useChat({
-    consultationId,
-    onSaveData: (data, isComplete) => {
-      if (isComplete && !consultationId) {
-        onCreateConsultation(data);
-      } else if (consultationId) {
-        onUpdateConsultation(data);
-      }
-    },
-    onImageUpload: async (file) => {
-      return new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          resolve(reader.result as string);
-        };
-        reader.onerror = () => {
-          reject(new Error("Failed to read file"));
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-  });
+    imagePreviewUrl,
+    handleImageUpload,
+    showImageAnalysisCard,
+    imageAnalysisResult,
+    name
+  } = useChat({ consultationId, onSaveData, onImageUpload }); // ✅ FIXED: Call hook directly
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (chatContainerRef.current) {
-      const lastMessage = chatHistory[chatHistory.length - 1];
-      if (lastMessage && lastMessage.type === "analysis") {
-        setTimeout(() => {
-          const analysisElements = chatContainerRef.current!.querySelectorAll('[data-analysis-card]');
-          const lastAnalysisCard = analysisElements[analysisElements.length - 1] as HTMLElement;
-          if (lastAnalysisCard) {
-            const container = chatContainerRef.current!;
-            const containerRect = container.getBoundingClientRect();
-            const cardRect = lastAnalysisCard.getBoundingClientRect();
-            const currentScrollTop = container.scrollTop;
-            const cardTopRelativeToContainer = cardRect.top - containerRect.top;
-            const targetScrollTop = currentScrollTop + cardTopRelativeToContainer - 10;
-            container.scrollTo({
-              top: Math.max(0, targetScrollTop),
-              behavior: 'smooth'
-            });
-          }
-        }, 200);
-      } else {
-        setTimeout(() => {
-          chatContainerRef.current!.scrollTop = chatContainerRef.current!.scrollHeight;
-        }, 100);
-      }
-    }
-  }, [chatHistory, options]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (chatContainerRef.current) {
-        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-      }
-    }, 1600);
-    return () => clearTimeout(timer);
-  }, [chatHistory.length]);
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
 
   return (
-    <div
-      className="w-full md:max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col h-screen md:h-[700px] md:max-h-[90vh] fixed md:static bottom-0 left-0 right-0 md:bottom-auto md:left-auto md:right-auto"
-      style={{ fontFamily: "'Inter', sans-serif" }}
-    >
-      <div className="px-6 py-4 flex items-center shadow-md" style={{ backgroundColor: primaryColor }}>
-        <NurseAvatar size="md" avatarUrl={avatarUrl || DEFAULT_AVATAR_URL} />
-        <div className="ml-3">
-          <h2 className="text-white font-semibold text-lg">
-            {chatbotSettings?.botDisplayName || botName || DEFAULT_BOT_NAME}
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="p-4 border-b flex items-center gap-2">
+        <NurseAvatar />
+        <div>
+          <h2 className="font-semibold text-lg">
+            {chatbotSettings?.welcomeMessage || `Hi ${name || ""}, I’m Fiona – here to help.`}
           </h2>
-          <p className="text-white opacity-80 text-sm">The Nail Surgery Clinic Assistant</p>
-        </div>
-        <div className="ml-auto">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            Online
-          </span>
+          <p className="text-sm text-gray-500">
+            {chatbotSettings?.subMessage || "Let’s figure out what’s going on."}
+          </p>
         </div>
       </div>
 
-      {currentStep && currentStep !== 'welcome' && (
-        <PatientJourneyTracker
-          currentChatStep={currentStep}
-          className="mx-2 mt-2 md:mx-4 md:mt-3"
-          primaryColor={primaryColor}
-        />
-      )}
-
-      <div
-        ref={chatContainerRef}
-        className="chat-container flex-1 overflow-y-auto p-4 bg-gradient-to-br from-white to-slate-50"
-        style={{ paddingBottom: '1rem' }}
-      >
-        <div className="space-y-3">
-          {chatHistory.map((message, index) => (
-            <div key={index}>
-              {message.type === "analysis" && message.data ? (
-                <AnalysisResults analysis={message.data} className="animate-fadeIn" />
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((msg, index) => (
+          <div key={index} className={`flex ${msg.sender === "bot" ? "justify-start" : "justify-end"}`}>
+            <div
+              className={`max-w-sm px-4 py-2 rounded-lg shadow-sm text-sm ${
+                msg.sender === "bot"
+                  ? "bg-gray-100 text-gray-800 rounded-bl-none"
+                  : "bg-blue-600 text-white rounded-br-none"
+              }`}
+            >
+              {msg.type === "analysis" && msg.analysis ? (
+                <AnalysisResults analysis={msg.analysis} />
               ) : (
-                <ChatMessage
-                  message={message.text}
-                  type={message.type}
-                  isTyping={message.isTyping}
-                  primaryColor={primaryColor}
-                />
+                msg.text
               )}
             </div>
-          ))}
+          </div>
+        ))}
 
-          {options && options.length > 0 && (
-            <ChatOptions options={options} onSelect={handleOptionSelect} primaryColor={primaryColor} />
-          )}
-        </div>
+        {showImageAnalysisCard && imageAnalysisResult && (
+          <div className="flex justify-start">
+            <AnalysisResults analysis={imageAnalysisResult} />
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t border-gray-200 bg-white">
-        {showImageUpload ? (
-          <ImageUploader
-            onImageUpload={handleImageUpload}
-            disabled={isWaitingForResponse}
-          />
-        ) : (
-          <UserInput
-            type={inputType}
-            disabled={isInputDisabled}
-            isWaiting={isWaitingForResponse}
-            onSubmit={handleUserInput}
-            validate={validate}
-            currentData={currentData}
-            primaryColor={primaryColor}
-          />
-        )}
+      {/* Image Preview */}
+      {imagePreviewUrl && (
+        <div className="p-4 border-t bg-gray-50">
+          <img src={imagePreviewUrl} alt="Preview" className="max-h-48 mx-auto" />
+        </div>
+      )}
+
+      {/* Input Area */}
+      <div className="p-4 border-t flex gap-2 items-center">
+        <ImageUpload onUpload={handleImageUpload} uploading={uploading} />
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyPress}
+          disabled={uploading}
+          placeholder="Type your message..."
+        />
+        <Button onClick={handleSendMessage} disabled={uploading || input.trim() === ""} size="icon">
+          <PaperAirplaneIcon className="w-5 h-5" />
+        </Button>
       </div>
     </div>
   );

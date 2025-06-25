@@ -1,5 +1,3 @@
-// server/routes.ts
-
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -47,6 +45,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ errors: error.errors });
       }
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // ✅ NEW: Partial sync route to support chatbot field syncing
+  app.post(`${apiPrefix}/webhook/partial`, async (req, res) => {
+    try {
+      const { field, value } = req.body;
+
+      if (!field || typeof value === "undefined") {
+        return res.status(400).json({ error: "Missing field or value" });
+      }
+
+      console.log(`📥 [Partial Sync] ${field}: ${value}`);
+
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("❌ Error in /webhook/partial:", error);
+      res.status(500).json({ error: "Failed to sync partial field" });
     }
   });
 
@@ -232,7 +248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const response = await fetch("https://footcareclinicadmin.engageiobots.com/api/webhook/consultation", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
           "User-Agent": "FootCare-Clinic-Webhook/1.0"
@@ -243,7 +259,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("📥 Response status:", response.status, response.statusText);
       console.log("📥 Response headers:", Object.fromEntries(response.headers.entries()));
 
-      // Get response text first to handle both JSON and HTML
       const responseText = await response.text();
       console.log("📥 Raw response:", responseText.substring(0, 200) + "...");
 
@@ -259,28 +274,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         console.error("❌ External webhook failed:", response.status, response.statusText);
 
-        // Check if it's HTML error page
         if (responseText.includes('<!DOCTYPE') || responseText.includes('<html>')) {
-          console.error("❌ Server returned HTML error page instead of JSON");
-          res.status(200).json({ 
-            message: "Webhook submitted (server returned HTML)", 
-            warning: "External server may be down or misconfigured" 
+          res.status(200).json({
+            message: "Webhook submitted (server returned HTML)",
+            warning: "External server may be down or misconfigured"
           });
         } else {
-          res.status(response.status).json({ 
-            error: "External webhook failed", 
-            details: responseText.substring(0, 200) 
+          res.status(response.status).json({
+            error: "External webhook failed",
+            details: responseText.substring(0, 200)
           });
         }
       }
     } catch (error) {
       console.error("❌ Webhook proxy error:", error);
-
-      // Still return success to keep chat flow working
-      res.status(200).json({ 
-        message: "Webhook attempted", 
+      res.status(200).json({
+        message: "Webhook attempted",
         warning: "External server connection failed",
-        error: error.message 
+        error: error.message
       });
     }
   });

@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { useChatContext } from "@/components/lib/ChatContext";
 import { apiRequest } from "@/lib/apiRequest";
@@ -10,7 +9,7 @@ const ImageAnalysis: React.FC = () => {
     updateUserData,
     handleNextStep,
     setIsLoading,
-    setMessageOverride
+    setMessageOverride,
   } = useChatContext();
 
   useEffect(() => {
@@ -27,46 +26,53 @@ const ImageAnalysis: React.FC = () => {
       }
 
       setIsLoading(true);
-      setMessageOverride("🧠 Thank you for your image - our AI is analyzing it now... Please wait.");
+      setMessageOverride("🧠 Thank you for your image - our AI is analyzing it now...");
 
       try {
-        console.log("Starting image analysis...");
+        console.log("🧠 Sending image to API for analysis...");
+
         const response = await apiRequest("/api/analyze-foot-image", {
           method: "POST",
-          body: JSON.stringify({ imageBase64: imagePath })
+          body: JSON.stringify({ imageBase64: imagePath }),
         });
 
-        console.log("Analysis response:", response);
+        console.log("✅ Analysis response:", response);
 
-        let resultText;
-        if (response?.condition && response.condition !== "Unable to analyze image") {
-          resultText = `📋 **AI Assessment Complete**\n\n🦶 **Condition:** ${response.condition}\n**Severity:** ${response.severity}\n\n**Recommendations:**\n${response.recommendations.map(r => `• ${r}`).join('\n')}\n\n⚠️ ${response.disclaimer}`;
+        const valid = response?.condition && response.condition !== "Unable to analyze image";
+
+        if (valid) {
+          updateUserData({ imageAnalysisResults: response });
+          setMessageOverride({
+            type: "analysis",
+            data: response,
+          });
         } else {
-          resultText = "⚠️ Our AI analysis is complete, but we'd like to gather more information from you to provide the best assessment.";
+          console.warn("⚠️ No valid condition returned from image analysis");
+          setMessageOverride({
+            type: "analysis",
+            data: {
+              condition: "Unable to analyze image",
+              severity: "N/A",
+              recommendations: ["Please try again or describe your symptoms manually."],
+              disclaimer: "This is not a medical diagnosis.",
+            },
+          });
         }
-
-        updateUserData({ imageAnalysisResults: response });
-        setMessageOverride(resultText);
-        
-        setIsLoading(false);
-        setTimeout(() => {
-          handleNextStep();
-        }, 3000);
       } catch (error) {
-        console.error("Image analysis error:", error);
-        setMessageOverride("⚠️ Our image analysis service is temporarily unavailable. Let's continue with describing your symptoms.");
-        setIsLoading(false);
-        setTimeout(() => {
-          handleNextStep();
-        }, 2000);
+        console.error("❌ Image analysis error:", error);
+        setMessageOverride("⚠️ Our image analysis service is temporarily unavailable. Let's continue.");
       }
+
+      setIsLoading(false);
+      setTimeout(() => {
+        handleNextStep();
+      }, 3000);
     };
 
-    // Start analysis after a brief delay
     setTimeout(() => {
       analyzeImage();
     }, 800);
-  }, [userData.imagePath, updateUserData, handleNextStep, setIsLoading, setMessageOverride]);
+  }, [userData.imagePath]);
 
   return (
     <div className="flex items-start gap-3 mt-4">
