@@ -36,12 +36,10 @@ interface UseChatProps {
   onImageUpload: (file: File) => Promise<string>;
 }
 
-function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
+export function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
   const [currentStep, setCurrentStep] = useState<keyof typeof chatFlow>("welcome");
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userData, setUserData] = useState<Record<string, any>>({});
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [messageOverride, setMessageOverride] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -83,7 +81,6 @@ function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
 
     setCurrentStep(stepKey);
     setIsLoading(true);
-
     await delay(step.delay || 600);
 
     if (stepKey === "image_analysis") {
@@ -100,8 +97,6 @@ function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
           method: "POST",
           body: JSON.stringify({ imageBase64 }),
         });
-
-        console.log("🔍 Image analysis result:", result);
 
         if (result?.condition && result?.severity && result?.recommendations) {
           updateUserData({ imageAnalysisResults: result });
@@ -124,7 +119,6 @@ function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
           ]);
         }
       } catch (error) {
-        console.error("❌ Image analysis error:", error);
         setChatHistory(prev => [
           ...prev,
           {
@@ -135,12 +129,9 @@ function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
       }
 
       setIsLoading(false);
-
       const nextStepKey = typeof step.next === "string" ? step.next : step.next?.("");
       if (nextStepKey) {
-        setTimeout(() => {
-          runStep(nextStepKey as keyof typeof chatFlow, currentUserData);
-        }, 1200);
+        setTimeout(() => runStep(nextStepKey as keyof typeof chatFlow, currentUserData), 1200);
       }
 
       scrollToBottom();
@@ -153,14 +144,12 @@ function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
     }
 
     const currentUserData = overrideUserData || userData;
-
     let message = messageOverride;
+
     if (!message) {
-      if (typeof step.message === "function") {
-        message = step.message(currentUserData, chatbotSettings);
-      } else {
-        message = step.message;
-      }
+      message = typeof step.message === "function"
+        ? step.message(currentUserData, chatbotSettings)
+        : step.message;
     }
 
     if (message) {
@@ -173,9 +162,7 @@ function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
     if (step.next && !step.input && !step.options && !step.component && !step.imageUpload) {
       const nextStepKey = typeof step.next === "string" ? step.next : step.next("");
       if (nextStepKey) {
-        setTimeout(() => {
-          runStep(nextStepKey as keyof typeof chatFlow, currentUserData);
-        }, step.delay || 1200);
+        setTimeout(() => runStep(nextStepKey as keyof typeof chatFlow, currentUserData), step.delay || 1200);
       }
     }
 
@@ -199,25 +186,19 @@ function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
 
       if (step.syncToPortal) {
         try {
-          const res = await apiRequest("/api/webhook/partial", {
+          await apiRequest("/api/webhook/partial", {
             method: "POST",
             body: JSON.stringify({ field, value }),
           });
-
-          if (!res || typeof res !== "object") {
-            throw new Error("Non-JSON response from portal sync");
-          }
-        } catch (error) {
-          console.warn("⚠️ Portal sync failed, continuing anyway.");
+        } catch {
+          console.warn("⚠️ Portal sync failed");
         }
       }
     }
 
     const nextStepKey = typeof step.next === "string" ? step.next : step.next?.(value);
     if (nextStepKey) {
-      setTimeout(() => {
-        runStep(nextStepKey as keyof typeof chatFlow, newUserData);
-      }, 800);
+      setTimeout(() => runStep(nextStepKey as keyof typeof chatFlow, newUserData), 800);
     }
   }, [step, validate, runStep, currentStep, userData]);
 
@@ -228,11 +209,9 @@ function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
   const handleImageUpload = useCallback(async (file: File) => {
     try {
       setIsLoading(true);
-
       const reader = new FileReader();
       reader.onload = async (e) => {
         const base64String = e.target?.result as string;
-
         const newUserData = {
           ...userData,
           imagePath: base64String,
@@ -240,34 +219,24 @@ function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
         };
 
         setUserData(newUserData);
-
         setChatHistory(prev => [...prev, {
           text: "📷 Image uploaded successfully",
           type: "user"
         }]);
 
         setIsLoading(false);
-
-        setTimeout(() => {
-          runStep("image_analysis", newUserData);
-        }, 600);
+        setTimeout(() => runStep("image_analysis", newUserData), 600);
       };
 
       reader.readAsDataURL(file);
-    } catch (error) {
-      console.error("Error uploading image:", error);
+    } catch {
       setIsLoading(false);
     }
   }, [userData, runStep]);
 
-  const handleSymptomAnalysis = useCallback(() => {
-    // Reserved for future use
-  }, []);
-
+  const handleSymptomAnalysis = useCallback(() => {}, []);
   const startChat = useCallback(() => {
-    if (chatHistory.length === 0) {
-      runStep("welcome");
-    }
+    if (chatHistory.length === 0) runStep("welcome");
   }, [runStep, chatHistory.length]);
 
   useEffect(() => {
@@ -293,5 +262,3 @@ function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
     updateUserData,
   };
 }
-
-export default useChat;
