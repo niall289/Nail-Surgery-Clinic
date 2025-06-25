@@ -36,7 +36,7 @@ interface UseChatProps {
   onImageUpload: (file: File) => Promise<string>;
 }
 
-export default function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
+function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
   const [currentStep, setCurrentStep] = useState<keyof typeof chatFlow>("welcome");
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userData, setUserData] = useState<Record<string, any>>({});
@@ -291,3 +291,5 @@ export default function useChat({ consultationId, onSaveData, onImageUpload }: U
     updateUserData,
   };
 }
+
+export default useChat;
