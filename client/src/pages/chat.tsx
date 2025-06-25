@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 import ChatInterface from "@/components/ui/ChatInterface";
+import { ChatProvider } from "@/components/lib/ChatContext";
 import type { Consultation } from "@shared/schema";
 
 export default function Chat() {
@@ -106,25 +107,27 @@ export default function Chat() {
         isEmbedded ? "p-0" : "p-4 md:p-0"
       }`}
     >
-      <ChatInterface
-        consultationId={consultationId}
-        consultation={consultation}
-        onCreateConsultation={(data) => {
-          if (isEmbedded && botConfig.clinicLocation !== "all") {
-            handleCreateConsultation({
-              ...data,
-              preferred_clinic: botConfig.clinicLocation,
-            });
-          } else {
-            handleCreateConsultation(data);
-          }
-        }}
-        onUpdateConsultation={handleUpdateConsultation}
-        botName={botConfig.botName}
-        avatarUrl={botConfig.avatarUrl}
-        welcomeMessage={botConfig.welcomeMessage}
-        primaryColor={botConfig.primaryColor}
-      />
+      <ChatProvider>
+        <ChatInterface
+          consultationId={consultationId}
+          consultation={consultation}
+          onCreateConsultation={(data) => {
+            if (isEmbedded && botConfig.clinicLocation !== "all") {
+              handleCreateConsultation({
+                ...data,
+                preferred_clinic: botConfig.clinicLocation,
+              });
+            } else {
+              handleCreateConsultation(data);
+            }
+          }}
+          onUpdateConsultation={handleUpdateConsultation}
+          botName={botConfig.botName}
+          avatarUrl={botConfig.avatarUrl}
+          welcomeMessage={botConfig.welcomeMessage}
+          primaryColor={botConfig.primaryColor}
+        />
+      </ChatProvider>
     </div>
   );
 }
