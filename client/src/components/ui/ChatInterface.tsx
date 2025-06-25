@@ -149,7 +149,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
 
       {/* Input Area */}
       <div className="border-t bg-white p-4">
-        {options ? (
+        {options && Array.isArray(options) && options.length > 0 ? (
           <div className="grid grid-cols-1 gap-2">
             {options.map((option, index) => (
               <button
@@ -157,7 +157,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                 onClick={() => handleOptionSelect(option)}
                 className="bg-teal-600 text-white text-sm px-4 py-3 rounded-xl hover:bg-teal-700 transition-colors"
               >
-                {option.label || option.text}
+                {option.text || option.label}
               </button>
             ))}
           </div>

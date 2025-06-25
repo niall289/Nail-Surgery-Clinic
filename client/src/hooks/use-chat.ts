@@ -47,7 +47,7 @@ export default function useChat({ consultationId, onSaveData, onImageUpload }: U
   const chatbotSettings: ChatbotSettings | null = null;
 
   const step = chatFlow[currentStep];
-  const options = step?.options || null;
+  const options = step?.options || [];
   const inputType = step?.input || "text";
   const showImageUpload = !!step?.imageUpload;
   const isInputDisabled = isLoading || !!step?.component;
