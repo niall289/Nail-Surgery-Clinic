@@ -5,7 +5,18 @@ import NurseAvatar from "./NurseAvatar";
 import { CameraIcon, Loader2, SendHorizonal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function ChatInterface() {
+interface ChatInterfaceProps {
+  consultationId?: number | null;
+  consultation?: any;
+  onCreateConsultation?: (data: any) => void;
+  onUpdateConsultation?: (data: any) => void;
+  botName?: string;
+  avatarUrl?: string;
+  welcomeMessage?: string;
+  primaryColor?: string;
+}
+
+export default function ChatInterface(props: ChatInterfaceProps = {}) {
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -21,8 +32,8 @@ export default function ChatInterface() {
     handleImageUpload,
     chatContainerRef,
   } = useChat({
-    consultationId: null,
-    onSaveData: () => {},
+    consultationId: props.consultationId || null,
+    onSaveData: props.onCreateConsultation || (() => {}),
     onImageUpload: async () => "",
   });
 
@@ -56,8 +67,8 @@ export default function ChatInterface() {
       <div className="flex items-center gap-3 mb-4">
         <NurseAvatar />
         <div>
-          <div className="font-bold text-sm">Nurse Fiona</div>
-          <div className="text-xs text-muted-foreground">FootCare Clinic Assistant</div>
+          <div className="font-bold text-sm">{props.botName || "Niamh"}</div>
+          <div className="text-xs text-muted-foreground">The Nail Surgery Clinic Assistant</div>
         </div>
       </div>
 
@@ -69,7 +80,7 @@ export default function ChatInterface() {
           if (msg.type === "analysis") {
             return (
               <div key={index} className="w-full">
-                <AnalysisResults results={msg.data} />
+                <AnalysisResults analysis={msg.data} />
               </div>
             );
           }
