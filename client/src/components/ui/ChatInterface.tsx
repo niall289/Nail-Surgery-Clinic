@@ -78,7 +78,7 @@ export default function ChatInterface(props: ChatInterfaceProps = {}) {
       </div>
 
       {/* Progress Tracker */}
-      <PatientJourneyTracker currentStep={currentStep} />
+      <PatientJourneyTracker currentChatStep={currentStep} />
 
       {/* Chat Messages */}
       <div

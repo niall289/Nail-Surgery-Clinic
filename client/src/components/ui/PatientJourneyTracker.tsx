@@ -67,7 +67,7 @@ interface PatientJourneyTrackerProps {
 
 const DEFAULT_TRACKER_PRIMARY_COLOR = "hsl(186, 100%, 30%)"; // Default teal
 
-export default function PatientJourneyTracker({
+export function PatientJourneyTracker({
   currentChatStep,
   className,
   primaryColor = DEFAULT_TRACKER_PRIMARY_COLOR
