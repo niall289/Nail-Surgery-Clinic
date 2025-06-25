@@ -157,3 +157,5 @@ export function PatientJourneyTracker({
     </div>
   );
 }
+export { PatientJourneyTracker };
+export default PatientJourneyTracker;

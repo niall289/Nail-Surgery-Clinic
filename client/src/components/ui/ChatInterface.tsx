@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { AnalysisResults } from "./AnalysisResults";
-import { PatientJourneyTracker } from "./PatientJourneyTracker";
+import PatientJourneyTracker from "./PatientJourneyTracker";
 import NurseAvatar from "./NurseAvatar";
 import { CameraIcon, Loader2, SendHorizonal } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -157,7 +157,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                 onClick={() => handleOptionSelect(option)}
                 className="bg-teal-600 text-white text-sm px-4 py-3 rounded-xl hover:bg-teal-700 transition-colors"
               >
-                {option.label}
+                {option.label || option.text}
               </button>
             ))}
           </div>
