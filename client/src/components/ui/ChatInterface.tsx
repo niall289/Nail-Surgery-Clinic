@@ -155,7 +155,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               <button
                 key={index}
                 onClick={() => handleOptionSelect(option)}
-                className="bg-teal-600 text-white text-sm px-4 py-3 rounded-xl hover:bg-teal-700 transition-colors"
+                className="bg-teal-600 text-white text-sm px-4 py-2 rounded-xl hover:bg-teal-700 transition-colors"
               >
                 {option.text || option.label}
               </button>
