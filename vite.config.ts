@@ -5,13 +5,16 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Root is the client app, build into server's public folder for production
 export default defineConfig({
   plugins: [react()],
   root: "client",
   server: {
-    host: "0.0.0.0",
-    port: 5000,
-    allowedHosts: ["*", ".replit.dev", ".replit.app"],
+    // Keep the dev server separate from the API server
+    port: 5173,
+    strictPort: true,
+    // Proxy API calls to the Node server running on 5201
+    proxy: { "/api": "http://localhost:5201" },
   },
   resolve: {
     alias: {
@@ -20,7 +23,7 @@ export default defineConfig({
   },
   build: {
     outDir: "../dist/public",
-    emptyOutDir: true, // ✅ Ensures previous builds are wiped
+    emptyOutDir: true,
     rollupOptions: {
       input: "client/index.html",
     },
