@@ -13,8 +13,8 @@ export default defineConfig({
     // Keep the dev server separate from the API server
     port: 5173,
     strictPort: true,
-    // Proxy API calls to the Node server running on 5201
-    proxy: { "/api": "http://localhost:5201" },
+    // Proxy API calls to the Node server running on PORT from env or default 5021
+    proxy: { "/api": `http://127.0.0.1:${process.env.PORT || 5021}` },
   },
   resolve: {
     alias: {

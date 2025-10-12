@@ -1,5 +1,5 @@
 // Environment configuration
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+export const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Export for use in components
 export const getApiUrl = () => {
@@ -12,5 +12,5 @@ export const getApiUrl = () => {
   }
 
   // In production, use relative URLs
-  return '';
+  return '/api';
 };

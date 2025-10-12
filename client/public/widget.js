@@ -108,15 +108,15 @@
     // Fetch dynamic button label
     const getButtonLabel = async () => {
       try {
-        const response = await fetch('https://footcareclinicadmin.engageiobots.com/api/chatbot-settings');
+        const response = await fetch('/api/chatbot-settings');
         if (response.ok) {
           const settings = await response.json();
-          return settings.ctaButtonLabel || '💬 Ask Fiona';
+          return settings.ctaButtonLabel || '💬 Ask Niamh';
         }
       } catch (error) {
-        console.warn('Failed to fetch button label from portal, using default');
+        console.warn('Failed to fetch button label, using default');
       }
-      return '💬 Ask Fiona';
+      return '💬 Ask Niamh';
     };
 
     getButtonLabel().then(label => {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { chatFlow, chatStepToField, type ChatOption } from "@/lib/chatFlow";
+import { chatFlow, chatStepToField, type ChatOption, type ChatState } from "@/lib/chatFlow";
 import { apiRequest } from "@/components/lib/apiRequest";
 import {
   nameSchema,
@@ -75,6 +75,11 @@ export default function useChat({ consultationId, onSaveData, onImageUpload }: U
     };
   }, [step]);
 
+  const userFriendlyText = (value: string): string => {
+    const option = options.find(o => o.value === value);
+    return option?.text || value;
+  };
+
   const runStep = useCallback(async (stepKey: keyof typeof chatFlow, overrideUserData?: any) => {
     const step = chatFlow[stepKey];
     if (!step) return;
@@ -82,6 +87,49 @@ export default function useChat({ consultationId, onSaveData, onImageUpload }: U
     setCurrentStep(stepKey);
     setIsLoading(true);
     await delay(step.delay || 600);
+
+    // Handle final consultation submission
+    if (stepKey === "submit_consultation") {
+      const currentUserData = overrideUserData || userData;
+
+      try {
+        // Prepare consultation data for submission
+        const consultationData = {
+          name: currentUserData.name,
+          email: currentUserData.email,
+          phone: currentUserData.phone,
+          clinic: "nailsurgery", // Set clinic based on chatbot
+          preferred_clinic: currentUserData.preferred_clinic,
+          issue_category: currentUserData.issue_category,
+          issue_specifics: currentUserData.ingrown_followup || currentUserData.fungal_followup || currentUserData.trauma_followup || currentUserData.fingernail_followup || currentUserData.other_followup,
+          symptom_description: currentUserData.symptom_description,
+          previous_treatment: currentUserData.previous_treatment === "yes" ? currentUserData.treatment_details : "no",
+          has_image: currentUserData.hasImage === "yes" ? "yes" : "no", // Schema expects string, not boolean
+          image_path: currentUserData.imagePath,
+          image_analysis: currentUserData.imageAnalysisResults ? JSON.stringify(currentUserData.imageAnalysisResults) : null,
+          pain_duration: null,
+          pain_severity: null,
+          additional_info: currentUserData.additional_help,
+          survey_response: currentUserData.emoji_survey,
+          conversation_log: JSON.stringify(currentUserData),
+          completed_steps: JSON.stringify(Object.keys(currentUserData))
+        };
+
+        // Submit to webhook
+        await apiRequest("/api/webhook/partial", {
+          method: "POST",
+          body: JSON.stringify({
+            field: 'final_submission',
+            value: 'complete',
+            consultationData
+          }),
+        });
+
+        console.log("✅ Consultation submitted successfully");
+      } catch (error) {
+        console.error("❌ Failed to submit consultation:", error);
+      }
+    }
 
     if (stepKey === "image_analysis") {
       const currentUserData = overrideUserData || userData;
@@ -148,7 +196,7 @@ export default function useChat({ consultationId, onSaveData, onImageUpload }: U
 
     if (!message) {
       message = typeof step.message === "function"
-        ? step.message(currentUserData, chatbotSettings)
+        ? step.message(currentUserData as ChatState, chatbotSettings)
         : step.message;
     }
 
@@ -175,7 +223,7 @@ export default function useChat({ consultationId, onSaveData, onImageUpload }: U
     const validationResult = validate(value);
     if (!validationResult.isValid) return;
 
-    setChatHistory(prev => [...prev, { text: value, type: "user" }]);
+    setChatHistory(prev => [...prev, { text: userFriendlyText(value), type: "user" }]);
 
     const field = chatStepToField[currentStep];
     let newUserData = userData;

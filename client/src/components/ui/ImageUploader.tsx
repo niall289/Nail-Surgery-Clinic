@@ -49,13 +49,11 @@ export default function ImageUploader({ onImageUpload, disabled = false }: Image
   const processFile = (file: File) => {
     setError(null);
 
-    // Check if the file is an image
     if (!file.type.match('image.*')) {
       setError('Please upload an image file (jpg, png, etc.)');
       return;
     }
 
-    // Check file size (limit to 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError('Please upload an image smaller than 5MB');
       return;
@@ -63,13 +61,10 @@ export default function ImageUploader({ onImageUpload, disabled = false }: Image
 
     setIsLoading(true);
 
-    // Create a preview
     const reader = new FileReader();
     reader.onload = (e) => {
       setPreview(e.target?.result as string);
       setIsLoading(false);
-
-      // Pass the file to parent component
       onImageUpload(file);
     };
     reader.onerror = () => {
@@ -92,7 +87,6 @@ export default function ImageUploader({ onImageUpload, disabled = false }: Image
 
   return (
     <div className="w-full mb-4">
-      {/* Image Guidelines */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
         <h4 className="text-sm font-medium text-blue-800 flex items-center">
           <Image className="h-4 w-4 mr-2" />
@@ -106,7 +100,6 @@ export default function ImageUploader({ onImageUpload, disabled = false }: Image
         </ul>
       </div>
 
-      {/* Upload Area */}
       <div 
         className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
           dragActive ? 'border-primary bg-primary/10' : error ? 'border-red-300' : 'border-gray-300'
@@ -123,7 +116,6 @@ export default function ImageUploader({ onImageUpload, disabled = false }: Image
           accept="image/*"
           className="hidden"
           disabled={disabled || isLoading}
-          capture="environment"
         />
 
         {error && (

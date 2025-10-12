@@ -3,13 +3,86 @@
 import { z } from "zod";
 import { nameSchema, phoneSchema, emailSchema } from "../../../shared/schema";
 
+export interface FAQItem {
+  question: string;
+  answer: string;
+  keywords: string[];
+}
+
+export const faqData: FAQItem[] = [
+  {
+    question: "What are your prices or costs for nail surgery?",
+    answer: "Surgical procedures range from €550 to €600 depending on the treatment. A €180 deposit is required to secure your appointment. Full pricing will be confirmed during consultation.",
+    keywords: ["price", "cost", "fee", "pricing", "expensive", "how much"]
+  },
+  {
+    question: "How do I book an appointment?",
+    answer: "To book, please contact us directly: hello@nailsurgeryclinic.ie or +353 87 4766949. Surgeries take place on Mondays from 2:00–5:40 PM.",
+    keywords: ["appointment", "booking", "schedule", "book", "when", "available"]
+  },
+  {
+    question: "Where is your clinic located?",
+    answer: "We're located at 65 Collins Ave West, Donnycarney, Dublin 9, D09K0Y3.",
+    keywords: ["location", "address", "where", "clinic", "office", "directions"]
+  },
+  {
+    question: "What procedures do you offer?",
+    answer: "We specialize in PNA (Partial Nail Avulsion) and TNA (Total Nail Avulsion) procedures — minor surgeries performed under local anaesthetic. Only one foot is operated on per visit.",
+    keywords: ["procedure", "surgery", "pna", "tna", "treatment", "what do you do"]
+  },
+  {
+    question: "Do you treat fungal nail infections?",
+    answer: "We offer advanced laser therapy for fungal nail infections — ideal for cases resistant to traditional treatments.",
+    keywords: ["laser", "fungal", "infection", "fungus", "onychomycosis"]
+  },
+  {
+    question: "What are the risks of nail surgery?",
+    answer: "Local anaesthetic is used during surgery. Rare side effects include low blood pressure and irregular heart rhythm. Avoid grapefruit on the day of surgery.",
+    keywords: ["anaesthetic", "risk", "side effects", "complications", "safe"]
+  },
+  {
+    question: "What conditions do you treat?",
+    answer: "We treat ingrown toenails, fungal infections, toenail trauma/injury, and fingernail issues. Our procedures include PNA and TNA surgeries under local anaesthetic.",
+    keywords: ["conditions", "treat", "ingrown", "trauma", "injury", "fingernail"]
+  },
+  {
+    question: "How long does the procedure take?",
+    answer: "Surgeries are performed on Mondays from 2:00–5:40 PM. Each procedure is a minor surgery under local anaesthetic, typically taking less than an hour.",
+    keywords: ["time", "duration", "long", "how long", "procedure time"]
+  },
+  {
+    question: "Do you accept insurance?",
+    answer: "Please contact us directly to discuss insurance coverage and payment options. We can help you understand what might be covered by your insurance provider.",
+    keywords: ["insurance", "covered", "pay", "payment", "medical card"]
+  },
+  {
+    question: "What should I expect after surgery?",
+    answer: "After surgery, you'll receive aftercare instructions. Avoid tight shoes and trim nails straight across to prevent future issues. If inflamed, bathe regularly with warm water and salt.",
+    keywords: ["aftercare", "recovery", "after", "post", "care", "instructions"]
+  },
+  {
+    question: "Can I drive after the procedure?",
+    answer: "Since procedures use local anaesthetic, most patients can drive themselves home. However, we recommend having someone accompany you if you prefer.",
+    keywords: ["drive", "transport", "anaesthetic", "local", "after procedure"]
+  },
+  {
+    question: "How do I prepare for surgery?",
+    answer: "Avoid grapefruit on the day of surgery. Wear comfortable, loose-fitting shoes. Follow any specific preparation instructions provided during your consultation.",
+    keywords: ["prepare", "preparation", "before", "diet", "shoes", "clothing"]
+  }
+];
+
 export interface ChatOption {
   text: string;
   value: string;
 }
 
+export interface ChatState {
+  [key: string]: any;
+}
+
 export type ChatStep = {
-  message: string | ((userData: any, settings?: any) => string);
+  message?: string | ((state: ChatState, settings?: any) => string);
   delay?: number;
   input?: 'text' | 'tel' | 'email' | 'textarea';
   imageUpload?: boolean;
@@ -31,6 +104,15 @@ export interface ChatFlow {
 function findRelevantInfo(query: string): string {
   const lowerQuery = query.toLowerCase();
 
+  // Search through FAQ data for relevant answers
+  for (const faq of faqData) {
+    const hasKeyword = faq.keywords.some(keyword => lowerQuery.includes(keyword));
+    if (hasKeyword) {
+      return faq.answer;
+    }
+  }
+
+  // Fallback to original logic if no FAQ match
   if (lowerQuery.includes("price") || lowerQuery.includes("cost") || lowerQuery.includes("fee")) {
     return "Surgical procedures range from €550 to €600 depending on the treatment. A €180 deposit is required to secure your appointment. Full pricing will be confirmed during consultation.";
   }
@@ -256,13 +338,31 @@ export const chatFlow: ChatFlow = {
     message: "What would you like to know more about?",
     input: "textarea",
     optional: true,
-    next: "help_response",
+    next: (value: string) => {
+      // Check if the input matches any FAQ keywords
+      const lowerValue = value.toLowerCase();
+      const hasFAQMatch = faqData.some(faq =>
+        faq.keywords.some(keyword => lowerValue.includes(keyword))
+      );
+      return hasFAQMatch ? "faq_response" : "final_question";
+    },
     syncToPortal: true
   },
+  faq_response: {
+    message: (state: ChatState) => {
+      const userInput = state.additional_help || state.userInput;
+      if (userInput) {
+        const response = findRelevantInfo(userInput);
+        return `${response}\n\nAnything else I can help with?`;
+      }
+      return "Thanks for your question! Feel free to ask more, or visit www.nailsurgeryclinic.ie for more info.";
+    },
+    next: "final_question"
+  },
   help_response: {
-    message: (userData) => {
-      if (userData.userInput) {
-        const response = findRelevantInfo(userData.userInput);
+    message: (state: ChatState) => {
+      if (state.userInput) {
+        const response = findRelevantInfo(state.userInput);
         return `${response}\n\nAnything else I can help with?`;
       }
       return "Thanks for your question! Feel free to ask more, or visit www.nailsurgeryclinic.ie for more info.";
@@ -291,14 +391,19 @@ export const chatFlow: ChatFlow = {
       if (rating === "excellent" || rating === "good") {
         return "Thanks for the positive feedback! 🌟";
       } else if (rating === "okay") {
-        return "Thanks for your feedback — we’re always looking to improve.";
+        return "Thanks for your feedback — we're always looking to improve.";
       } else if (rating === "poor") {
-        return "We’re sorry to hear that. Please contact hello@nailsurgeryclinic.ie so we can help.";
+        return "We're sorry to hear that. Please contact hello@nailsurgeryclinic.ie so we can help.";
       }
       return "Thanks again!";
     },
-    next: "end",
+    next: "submit_consultation",
     delay: 1000
+  },
+  submit_consultation: {
+    message: "Submitting your consultation...",
+    next: "end",
+    delay: 500
   },
   end: {
     message: "🔦 Tip: Avoid tight shoes and trim nails straight across to prevent future nail issues. If the nail in question is inflamed, bathe regularly with warm water and salt. Take care!",

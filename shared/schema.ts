@@ -9,11 +9,13 @@ import {
   integer,
   boolean,
   primaryKey,
-  pgEnum
+  pgEnum,
+  uuid,
+  check
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 // ✅ Users table (added for schema sync)
 export const users = pgTable("users", {
@@ -34,6 +36,7 @@ export const patients = pgTable("patients", {
   gender: varchar("gender"),
   insuranceType: varchar("insurance_type"),
   dateOfBirth: timestamp("date_of_birth"),
+  clinic_group: text("clinic_group").default("FootCare Clinic"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -150,6 +153,7 @@ export const consultations = pgTable("consultations", {
   has_image: text("has_image"),
   image_path: text("image_path"),
   image_analysis: text("image_analysis"),
+  image_url: text("image_url"),
   calendar_booking: text("calendar_booking"),
   booking_confirmation: text("booking_confirmation"),
   final_question: text("final_question"),
@@ -158,8 +162,27 @@ export const consultations = pgTable("consultations", {
   survey_response: text("survey_response"),
   conversation_log: jsonb("conversation_log"),
   completed_steps: jsonb("completed_steps"),
+  raw_json: jsonb("raw_json"),
+  symptom_analysis: text("symptom_analysis"),
+  pain_duration: text("pain_duration"),
+  pain_severity: text("pain_severity"),
+  additional_info: text("additional_info"),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Images table for storing consultation images
+export const images = pgTable("images", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  consultationId: integer("consultation_id").notNull().references(() => consultations.id, { onDelete: "cascade" }),
+  url: text("url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  sourceType: text("source_type").notNull().$type<"upload" | "link">(),
+  meta: jsonb("meta"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  sourceTypeCheck: check("images_source_type_check", sql`${table.sourceType} in ('upload', 'link')`),
+  compositeIdx: index("images_consultation_id_created_at_idx").on(table.consultationId, table.createdAt),
+}));
 
 // Chatbot tone enum
 export const chatbotToneEnum = pgEnum('chatbot_tone', ['Friendly', 'Professional', 'Clinical', 'Casual']);
@@ -167,13 +190,16 @@ export const chatbotToneEnum = pgEnum('chatbot_tone', ['Friendly', 'Professional
 // Chatbot settings
 export const chatbotSettings = pgTable("chatbot_settings", {
   id: serial("id").primaryKey(),
+  clinicGroup: text("clinic_group").notNull(),
   welcomeMessage: text("welcome_message").default("👋 Hello! I'm Niamh, your Nail Surgery Clinic virtual assistant. I'll help gather some information about your nail concerns and connect you with our team if needs be. Before we begin, I'll need to collect some basic information. Rest assured, your data is kept private and secure."),
   botDisplayName: varchar("bot_display_name").default("Niamh"),
   ctaButtonLabel: varchar("cta_button_label").default("Ask Niamh"),
   chatbotTone: chatbotToneEnum("chatbot_tone").default("Friendly"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  clinicGroupIdx: index("chatbot_settings_clinic_group_idx").on(table.clinicGroup),
+}));
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -205,9 +231,18 @@ export const insertChatbotSettingsSchema = createInsertSchema(chatbotSettings, {
   botDisplayName: z.string().min(3).optional(),
   ctaButtonLabel: z.string().min(3).optional(),
 }).pick({
-  welcomeMessage: true, botDisplayName: true, ctaButtonLabel: true, chatbotTone: true
+  clinicGroup: true, welcomeMessage: true, botDisplayName: true, ctaButtonLabel: true, chatbotTone: true
 });
-export const insertConsultationSchema = createInsertSchema(consultations);
+export const insertConsultationSchema = createInsertSchema(consultations).extend({
+  raw_json: z.any().optional(),
+});
+export const insertImageSchema = createInsertSchema(images).pick({
+  consultationId: true,
+  url: true,
+  thumbnailUrl: true,
+  sourceType: true,
+  meta: true,
+});
 
 // Individual field validation schemas
 export const nameSchema = z.string().min(2, "Name must be at least 2 characters");
@@ -225,6 +260,8 @@ export type InsertCondition = z.infer<typeof insertConditionSchema>;
 export type InsertClinic = z.infer<typeof insertClinicSchema>;
 export type InsertChatbotSettings = z.infer<typeof insertChatbotSettingsSchema>;
 export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
+export type InsertImage = z.infer<typeof insertImageSchema>;
+export type Image = typeof images.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Patient = typeof patients.$inferSelect;
 export type Assessment = typeof assessments.$inferSelect;
@@ -233,4 +270,7 @@ export type Question = typeof questions.$inferSelect;
 export type Condition = typeof conditions.$inferSelect;
 export type Clinic = typeof clinics.$inferSelect;
 export type ChatbotSettings = typeof chatbotSettings.$inferSelect;
-export type Consultation = typeof consultations.$inferSelect;
+export type Consultation = typeof consultations.$inferSelect & {
+  firstImageUrl?: string | null;
+  firstThumbnailUrl?: string | null;
+};

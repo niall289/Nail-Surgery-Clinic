@@ -12,7 +12,7 @@ export default function Chat() {
   const [isEmbedded, setIsEmbedded] = useState(false);
   const [botConfig, setBotConfig] = useState({
     botName: "Niamh",
-    avatarUrl: "https://nailsurgeryclinic.engageiobots.com/assets/images/nurse-niamh.png",
+    avatarUrl: "/assets/images/nurse-niamh.png",
     welcomeMessage: "",
     primaryColor: "hsl(186, 100%, 30%)",
     clinicLocation: "all",

@@ -1,9 +1,5 @@
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function analyzeFootImage(base64: string): Promise<any> {
   try {
     console.log('Starting image analysis...');
@@ -43,19 +39,27 @@ export async function analyzeFootImage(base64: string): Promise<any> {
 
     console.log('Sending image to OpenAI Vision API...');
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `You are a specialist chiropodist/podiatrist AI assistant conducting a preliminary clinical assessment of nail and foot pathology. Analyze this image using proper podiatric medical terminology and provide a structured clinical evaluation.
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    let model = "gpt-4o-mini";
+    let response;
+
+    try {
+      response = await openai.chat.completions.create({
+        model,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `You are a specialist Foot Health Practitioner AI assistant conducting a preliminary clinical assessment of nail and foot pathology. Analyze this image using proper foot health medical terminology and provide a structured clinical evaluation.
 
 Examine for common nail pathologies including:
 - Onychocryptosis (ingrown toenails)
-- Onychomycosis (fungal nail infections) 
+- Onychomycosis (fungal nail infections)
 - Nail trauma and hematomas
 - Onychauxis (nail hypertrophy)
 - Paronychia (nail fold infections)
@@ -65,26 +69,78 @@ Return ONLY valid JSON in this exact format:
 {
   "condition": "Primary differential diagnosis with clinical description using proper medical terminology",
   "severity": "mild | moderate | severe",
-  "recommendations": ["Specific chiropodist treatment recommendations", "Clinical care instructions", "Specialist referral guidance if indicated"],
-  "disclaimer": "This is a preliminary chiropodist assessment for informational purposes only. Clinical examination by a qualified podiatrist/chiropodist is required for definitive diagnosis and treatment planning."
+  "recommendations": ["Specific Foot Health Practitioner treatment recommendations", "Clinical care instructions", "Specialist referral guidance if indicated"],
+  "disclaimer": "This is a preliminary Foot Health Practitioner assessment for informational purposes only. Clinical examination by a qualified Foot Health Practitioner is required for definitive diagnosis and treatment planning."
 }
 
-Use precise podiatric terminology. Be clinically specific. No extra commentary outside JSON.
+Use precise Foot Health Practitioner terminology. Be clinically specific. No extra commentary outside JSON.
 `
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${cleanBase64}`,
-                detail: "high"
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${cleanBase64}`,
+                  detail: "high"
+                }
               }
+            ]
+          }
+        ],
+        max_tokens: 800,
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+      });
+    } catch (apiError: any) {
+      if (apiError.status === 429 && model === "gpt-4o") {
+        console.log("Retrying with gpt-4o-mini due to quota limit");
+        model = "gpt-4o-mini";
+        response = await openai.chat.completions.create({
+          model,
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: `You are a specialist Foot Health Practitioner AI assistant conducting a preliminary clinical assessment of nail and foot pathology. Analyze this image using proper foot health medical terminology and provide a structured clinical evaluation.
+
+Examine for common nail pathologies including:
+- Onychocryptosis (ingrown toenails)
+- Onychomycosis (fungal nail infections)
+- Nail trauma and hematomas
+- Onychauxis (nail hypertrophy)
+- Paronychia (nail fold infections)
+- Onycholysis (nail separation)
+
+Return ONLY valid JSON in this exact format:
+{
+  "condition": "Primary differential diagnosis with clinical description using proper medical terminology",
+  "severity": "mild | moderate | severe",
+  "recommendations": ["Specific Foot Health Practitioner treatment recommendations", "Clinical care instructions", "Specialist referral guidance if indicated"],
+  "disclaimer": "This is a preliminary Foot Health Practitioner assessment for informational purposes only. Clinical examination by a qualified Foot Health Practitioner is required for definitive diagnosis and treatment planning."
+}
+
+Use precise Foot Health Practitioner terminology. Be clinically specific. No extra commentary outside JSON.
+`
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:image/jpeg;base64,${cleanBase64}`,
+                    detail: "high"
+                  }
+                }
+              ]
             }
-          ]
-        }
-      ],
-      max_tokens: 800,
-      temperature: 0.2,
-    });
+          ],
+          max_tokens: 800,
+          temperature: 0.2,
+          response_format: { type: "json_object" },
+        });
+      } else {
+        throw apiError;
+      }
+    }
 
     const content = response.choices[0]?.message?.content?.trim();
     console.log("OpenAI response content:", content);
@@ -133,7 +189,7 @@ Use precise podiatric terminology. Be clinically specific. No extra commentary o
     }
 
   } catch (error) {
-    console.error('OpenAI API error:', error);
+    console.error('OpenAI API error:', (error as any).message || error);
     return {
       condition: "Unable to analyze image at this time",
       severity: "unknown",
