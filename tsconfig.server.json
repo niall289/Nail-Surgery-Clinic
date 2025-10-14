@@ -1,0 +1,25 @@
+﻿{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    "rootDir": ".",
+    "outDir": "dist",
+
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["shared/*"],
+      "@db": ["server/db"]
+    },
+
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["server/**/*.ts", "shared/**/*.ts", "vite.config.ts"],
+  "exclude": ["node_modules", "dist"]
+}

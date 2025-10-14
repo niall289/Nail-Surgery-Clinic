@@ -1,13 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import * as schema from "@shared/schema";
+import { storage } from "./storage.js";
+import * as schema from "../shared/schema.js";
 import { z } from "zod";
-import { generateNurseImage } from "./services/imageGeneration";
-import { analyzeFootImage } from "./services/openai";
-import { analyzeSymptoms } from "./services/symptomAnalysis";
-import { exportConsultationsToCSV, exportSingleConsultationToCSV } from "./services/csvExport";
-import { submitWebhook, uploadBase64Image, testWebhookSubmission } from "./supabase";
+import { generateNurseImage } from "./services/imageGeneration.js";
+import { analyzeFootImage } from "./services/openai.js";
+import { analyzeSymptoms } from "./services/symptomAnalysis.js";
+import { exportConsultationsToCSV, exportSingleConsultationToCSV } from "./services/csvExport.js";
+import { submitWebhook, uploadBase64Image, testWebhookSubmission } from "./supabase.js";
 import path from "path";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -69,7 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ✅ NEW: Partial sync route to support chatbot field syncing
+  // âœ… NEW: Partial sync route to support chatbot field syncing
   app.post(`${apiPrefix}/webhook/partial`, async (req, res) => {
     try {
       const { field, value, consultationData } = req.body;
@@ -78,16 +78,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Missing field or value" });
       }
 
-      console.log(`📥 [Partial Sync] ${field}: ${value}`);
+      console.log(`ðŸ“¥ [Partial Sync] ${field}: ${value}`);
 
       // If this is a final submission with complete consultation data
       if (consultationData && field === 'final_submission') {
-        console.log("📝 [Final Submission] Saving complete consultation to database");
+        console.log("ðŸ“ [Final Submission] Saving complete consultation to database");
 
         const validatedData = schema.insertConsultationSchema.parse(consultationData);
         const newConsultation = await storage.createConsultation(validatedData);
 
-        console.log(`✅ Consultation saved with ID: ${newConsultation.id}`);
+        console.log(`âœ… Consultation saved with ID: ${newConsultation.id}`);
+        
+        // Forward to portal webhook
+        try {
+          const imageData = validatedData.image_path?.startsWith('data:image/') ? validatedData.image_path : undefined;
+          const webhookResult = await submitWebhook(validatedData, imageData);
+          
+          if (webhookResult.success) {
+            console.log("✅ Portal webhook forwarding successful");
+          } else {
+            console.warn("⚠️ Portal webhook forwarding failed:", webhookResult.message);
+          }
+        } catch (webhookError) {
+          console.error("❌ Portal webhook error:", webhookError);
+          // Continue anyway - local save succeeded
+        }
         return res.status(201).json({
           success: true,
           consultation: newConsultation,
@@ -97,7 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(200).json({ success: true });
     } catch (error) {
-      console.error("❌ Error in /webhook/partial:", error);
+      console.error("âŒ Error in /webhook/partial:", error);
       res.status(500).json({ error: "Failed to sync partial field" });
     }
   });
@@ -282,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate payload against schema
       const validatedData = schema.insertConsultationSchema.parse(req.body);
 
-      console.log("🔄 Proxying webhook to external server using Supabase...");
+      console.log("ðŸ”„ Proxying webhook to external server using Supabase...");
       
       // Check if we have image data to include
       let imageBase64: string | undefined = undefined;
@@ -293,11 +308,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             imageBase64 = validatedData.image_path;
           } else {
             // Otherwise, try to read the file
-            console.log("📸 Processing local image for webhook...");
+            console.log("ðŸ“¸ Processing local image for webhook...");
             // We'll keep the image_path in the payload for reference
           }
         } catch (imageError) {
-          console.error("⚠️ Error processing image:", imageError);
+          console.error("âš ï¸ Error processing image:", imageError);
           // Continue without the image
         }
       }
@@ -306,13 +321,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const webhookResult = await submitWebhook(validatedData, imageBase64);
       
       if (webhookResult.success) {
-        console.log("✅ External webhook success");
+        console.log("âœ… External webhook success");
         res.status(200).json({
           message: "Webhook submitted successfully",
           response: webhookResult.response
         });
       } else {
-        console.error("❌ External webhook failed:", webhookResult.message);
+        console.error("âŒ External webhook failed:", webhookResult.message);
         res.status(200).json({
           message: "Webhook attempted",
           warning: webhookResult.message,
@@ -323,7 +338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ errors: error.errors });
       }
-      console.error("❌ Webhook proxy error:", error);
+      console.error("âŒ Webhook proxy error:", error);
       res.status(200).json({
         message: "Webhook attempted",
         warning: "External server connection failed",
@@ -338,7 +353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await testWebhookSubmission();
       res.status(200).json({ message: "Webhook test completed, check server logs for details" });
     } catch (error) {
-      console.error("❌ Test webhook error:", error);
+      console.error("âŒ Test webhook error:", error);
       res.status(500).json({ error: "Test webhook failed", details: error instanceof Error ? error.message : String(error) });
     }
   });

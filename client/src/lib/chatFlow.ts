@@ -1,7 +1,11 @@
 // Nail Surgery Clinic Chatbot Flow (Final Version, Client-Requested Updates Verified)
 
 import { z } from "zod";
-import { nameSchema, phoneSchema, emailSchema } from "../../../shared/schema";
+
+// Inline validators (not exported from shared/schema)
+const nameSchema = z.string().trim().min(2, "Please enter your full name");
+const emailSchema = z.string().trim().email("Please enter a valid email");
+const phoneSchema = z.string().trim().regex(/^[0-9+\-\s()]{5,}$/, "Please enter a valid phone number");
 
 export interface FAQItem {
   question: string;

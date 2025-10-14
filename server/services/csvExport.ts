@@ -1,7 +1,7 @@
-import { createObjectCsvWriter } from 'csv-writer';
+﻿import { createObjectCsvWriter } from 'csv-writer';
 import path from 'path';
 import fs from 'fs';
-import { Consultation } from '@shared/schema';
+import { Consultation } from '../../shared/schema.js';
 
 const exportDir = path.join(process.cwd(), 'exports');
 if (!fs.existsSync(exportDir)) {
@@ -30,7 +30,7 @@ const CSV_HEADERS = [
   { id: 'drySkinDetails', title: 'Dry Skin Details' },
   { id: 'rashDetails', title: 'Rash Details' },
   { id: 'wartsDetails', title: 'Warts Details' },
-  { id: 'athletesFootDetails', title: "Athlete’s Foot Details" },
+  { id: 'athletesFootDetails', title: "Athleteâ€™s Foot Details" },
   { id: 'structuralSpecifics', title: 'Structural Specifics' },
   { id: 'bunionsDetails', title: 'Bunions Details' },
   { id: 'hammerToesDetails', title: 'Hammer Toes Details' },

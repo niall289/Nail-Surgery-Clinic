@@ -1,7 +1,7 @@
-import { db } from "@db"; // db can be null
-import { consultations } from "@shared/schema"; 
+﻿import { db } from "./db.js"; // db can be null
+import { consultations } from "../shared/schema.js"; 
 import { eq, desc } from "drizzle-orm";
-import type { InsertConsultation, Consultation } from "@shared/schema"; 
+import type { InsertConsultation, Consultation } from "../shared/schema.js"; 
 
 const DB_UNAVAILABLE_WARNING_CHATBOT = "Chatbot DB not available. Operating in mock/limited mode. Data will not be persisted.";
 
@@ -38,7 +38,7 @@ export const storage = {
     if (!db) {
       logMockWarningChatbot('createConsultation', data);
       const now = new Date();
-      const mockConsultation: Consultation = {
+      const mockConsultation: any = {
         id: Date.now(),
         name: data.name || 'Mock User',
         email: data.email, 
