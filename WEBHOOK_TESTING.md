@@ -83,7 +83,9 @@ curl -X POST http://localhost:5021/api/webhook-proxy \
 ```
 
 **Note:** The example above uses a small 10x10 pixel test image. For realistic testing with actual images, you can:
-1. Convert a real image to base64: `base64 -i your_image.png` (or use an online tool)
+1. Convert a real image to base64:
+   - Linux/Mac: `base64 < your_image.png` or `base64 your_image.png`
+   - Or use an online tool like base64-image.de
 2. Prefix with the data URI scheme: `data:image/png;base64,<your_base64_data>`
 3. Test with images of varying sizes to ensure proper handling
 
@@ -182,11 +184,13 @@ To test the complete flow:
 - Verify secret matches the one configured in ETEA Portal
 
 ### Timeout Issues
-- Default timeout is **30 seconds per attempt** (hardcoded, not configurable)
+- Default timeout is **30 seconds per attempt** (currently hardcoded for consistency)
 - Total possible wait time: up to 97 seconds (3 attempts × 30s + backoff delays)
+- The 30-second timeout provides a good balance between reliability and responsiveness
 - If requests consistently timeout, check network connectivity
 - Verify the webhook endpoint is accessible
 - Consider if the remote endpoint needs performance optimization
+- Note: If needed, the timeout can be made configurable in future updates
 
 ### Image Upload Issues
 - Verify base64 images include proper data URI prefix: `data:image/png;base64,...`
