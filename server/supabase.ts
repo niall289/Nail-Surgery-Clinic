@@ -155,86 +155,154 @@ export async function uploadBase64Image(
 export async function submitWebhook(
   data: any, 
   imageData?: string
-): Promise<{ success: boolean; message: string; response?: any }> {
-  const portalWebhookUrl = process.env.PORTAL_WEBHOOK_URL || 'https://your-portal-url-here/api/webhooks/nailsurgery';
-  const webhookSecret = process.env.NAIL_WEBHOOK_SECRET || 'nailsurgery_secret_2025';
+): Promise<{ success: boolean; message?: string; response?: any }> {
+  const url = process.env.PORTAL_WEBHOOK_URL || 'https://eteaportal.engageiobots.com/api/webhooks/nailsurgery';
+  const webhookSecret = process.env.NAIL_WEBHOOK_SECRET || '';
+  const isDev = process.env.NODE_ENV !== 'production';
   
-  try {
+  // Enrich the payload with required fields
+  const enrichedData = {
+    ...data,
+    source: 'nail_surgery_clinic',
+    clinic_group: 'The Nail Surgery Clinic',
+    preferred_clinic: data.preferred_clinic || null,
+  };
+  
+  // Dev-only logging with masked secret
+  if (isDev) {
+    const maskedSecret = webhookSecret ? webhookSecret.substring(0, 3) + '…' : '(none)';
+    const truncatedPayload = JSON.stringify(enrichedData).substring(0, 500);
     console.log('🔄 Submitting webhook to portal...');
-    
-    let imageUrl = null;
-    if (imageData) {
-      console.log('📸 Processing image for webhook...');
-      imageUrl = await uploadBase64Image(imageData);
-      
-      if (imageUrl) {
-        data.image_url = imageUrl;
-        console.log('✅ Image uploaded and URL added to payload');
-      } else {
-        console.warn('⚠️ Failed to upload image, continuing without image URL');
-      }
-    }
-
-    // Prepare form data for multipart request
-    const formData = new FormData();
-    
-    // Add the JSON data as a field
-    formData.append('data', JSON.stringify(data));
-    
-    // If we have image data, add it as a separate field
-    if (imageData) {
-      // Extract the actual base64 data (remove the data:image/png;base64, prefix)
-      const matches = imageData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-      if (matches && matches.length === 3) {
-        const base64Data = matches[2];
-        const contentType = matches[1];
-        const buffer = Buffer.from(base64Data, 'base64');
-        const blob = new Blob([buffer], { type: contentType });
-        formData.append('image', blob, 'patient_image.png');
-      }
-    }
-    
-    // Make the request with correct headers
-    const response = await fetch(portalWebhookUrl, {
-      method: 'POST',
-      headers: {
-        'X-Webhook-Secret': webhookSecret,
-        // Content-Type is set automatically by fetch when using FormData
-      },
-      body: formData
-    });
-
-    const responseText = await response.text();
-    let responseData;
+    console.log(`   URL: ${url}`);
+    console.log(`   Secret: ${maskedSecret}`);
+    console.log(`   Payload (truncated): ${truncatedPayload}${JSON.stringify(enrichedData).length > 500 ? '...' : ''}`);
+  }
+  
+  // Helper function to perform a single fetch attempt with timeout
+  const attemptFetch = async (attemptNumber: number): Promise<Response> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
     
     try {
-      responseData = JSON.parse(responseText);
-    } catch (e) {
-      responseData = { rawResponse: responseText.substring(0, 200) };
+      // Build FormData with enriched data
+      const { Blob } = globalThis;
+      const form = new FormData();
+      form.append('data', JSON.stringify(enrichedData));
+      
+      // Handle image data if present
+      if (imageData) {
+        const matches = imageData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (matches && matches.length === 3) {
+          const contentType = matches[1];
+          const base64Data = matches[2];
+          const buffer = Buffer.from(base64Data, 'base64');
+          const blob = new Blob([buffer], { type: contentType });
+          const extension = contentType.split('/')[1] || 'png';
+          form.append('image', blob, `patient_image.${extension}`);
+        }
+      }
+      
+      // Handle Buffer images from formData.images if they exist in the data
+      if (data.images && Array.isArray(data.images)) {
+        for (let i = 0; i < data.images.length; i++) {
+          const img = data.images[i];
+          if (Buffer.isBuffer(img.buffer)) {
+            const blob = new Blob([img.buffer], { type: img.mimetype || 'image/png' });
+            form.append('images', blob, img.filename || `image_${i}.png`);
+          }
+        }
+      }
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-Webhook-Secret': webhookSecret,
+        },
+        body: form,
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
     }
-    
-    if (response.ok) {
-      console.log('✅ Webhook submission successful');
-      return {
-        success: true,
-        message: 'Webhook submitted successfully',
-        response: responseData
-      };
-    } else {
-      console.error(`❌ Webhook submission failed: ${response.status} ${response.statusText}`);
-      return {
-        success: false,
-        message: `Webhook failed: ${response.status} ${response.statusText}`,
-        response: responseData
-      };
+  };
+  
+  // Retry logic with exponential backoff
+  const maxRetries = 3;
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await attemptFetch(attempt + 1);
+      
+      // Parse response
+      const responseText = await response.text();
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (e) {
+        responseData = { rawResponse: responseText.substring(0, 200) };
+      }
+      
+      // Check if we should retry based on status code
+      const shouldRetry = 
+        response.status >= 500 || // 5xx errors
+        response.status === 429;   // Rate limiting
+      
+      if (response.ok) {
+        if (isDev) {
+          console.log('✅ Webhook submission successful');
+        }
+        return {
+          success: true,
+          response: responseData
+        };
+      } else if (shouldRetry && attempt < maxRetries - 1) {
+        // Retry on 5xx and 429, but not on other 4xx
+        const backoffMs = Math.pow(2, attempt) * 1000; // Exponential backoff: 1s, 2s, 4s
+        if (isDev) {
+          console.warn(`⚠️ Webhook attempt ${attempt + 1} failed with status ${response.status}, retrying in ${backoffMs}ms...`);
+        }
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+        continue;
+      } else {
+        // Don't retry on 4xx (except 429)
+        if (isDev) {
+          console.error(`❌ Webhook submission failed: ${response.status} ${response.statusText}`);
+        }
+        return {
+          success: false,
+          message: `Webhook failed: ${response.status} ${response.statusText}`,
+          response: responseData
+        };
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      
+      // Retry on network errors and timeouts
+      if (attempt < maxRetries - 1) {
+        const backoffMs = Math.pow(2, attempt) * 1000;
+        if (isDev) {
+          console.warn(`⚠️ Webhook attempt ${attempt + 1} failed with error: ${lastError.message}, retrying in ${backoffMs}ms...`);
+        }
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+        continue;
+      }
     }
-  } catch (error) {
-    console.error('❌ Exception in webhook submission:', error);
-    return {
-      success: false,
-      message: `Webhook exception: ${error instanceof Error ? error.message : String(error)}`,
-    };
   }
+  
+  // All retries exhausted
+  const errorMessage = lastError ? lastError.message : 'Unknown error';
+  if (isDev) {
+    console.error(`❌ Webhook submission failed after ${maxRetries} attempts: ${errorMessage}`);
+  }
+  return {
+    success: false,
+    message: `Webhook exception after ${maxRetries} attempts: ${errorMessage}`,
+  };
 }
 
 /**
