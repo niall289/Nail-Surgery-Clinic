@@ -56,6 +56,14 @@ curl -X POST http://localhost:5021/api/webhook-proxy \
   }'
 ```
 
+**Expected responses:**
+- `200 OK` with `{"message": "Webhook submitted successfully"}` - Success
+- `200 OK` with `{"message": "Webhook attempted", "warning": "..."}` - Soft failure (webhook failed but request accepted)
+- `400 Bad Request` - Invalid data format
+- `500 Internal Server Error` - Server error
+
+**Note:** The webhook proxy always returns 200 OK even if the external webhook fails, to ensure the chatbot can continue functioning.
+
 ### 3. Testing with Image Data
 
 To test webhook submission with an image:
@@ -70,9 +78,14 @@ curl -X POST http://localhost:5021/api/webhook-proxy \
     "issue_category": "nail_fungus",
     "issue_specifics": "Discolored nail",
     "has_image": true,
-    "image_path": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    "image_path": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mNk+M9Qz0AEYBxVSF+FAP0XBgFBMGK0AAAAAElFTkSuQmCC"
   }'
 ```
+
+**Note:** The example above uses a small 10x10 pixel test image. For realistic testing with actual images, you can:
+1. Convert a real image to base64: `base64 -i your_image.png` (or use an online tool)
+2. Prefix with the data URI scheme: `data:image/png;base64,<your_base64_data>`
+3. Test with images of varying sizes to ensure proper handling
 
 ## Environment Configuration
 
@@ -85,6 +98,22 @@ NAIL_WEBHOOK_SECRET=your_actual_secret_here
 
 # Set to development for verbose logging
 NODE_ENV=development
+```
+
+**Security Warning:** 
+- **NEVER commit your actual webhook secret to version control**
+- Use a strong, randomly generated secret (at least 32 characters)
+- Keep the secret confidential and only share it with authorized personnel
+- Rotate the secret periodically for security
+- Use different secrets for development and production environments
+
+**Generating a secure secret:**
+```bash
+# On Linux/Mac:
+openssl rand -hex 32
+
+# Or using Node.js:
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ## Expected Behavior
@@ -153,9 +182,11 @@ To test the complete flow:
 - Verify secret matches the one configured in ETEA Portal
 
 ### Timeout Issues
-- Default timeout is 30 seconds per attempt
+- Default timeout is **30 seconds per attempt** (hardcoded, not configurable)
+- Total possible wait time: up to 97 seconds (3 attempts × 30s + backoff delays)
 - If requests consistently timeout, check network connectivity
 - Verify the webhook endpoint is accessible
+- Consider if the remote endpoint needs performance optimization
 
 ### Image Upload Issues
 - Verify base64 images include proper data URI prefix: `data:image/png;base64,...`
