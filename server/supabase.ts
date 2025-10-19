@@ -156,16 +156,16 @@ export async function submitWebhook(
   data: any, 
   imageData?: string
 ): Promise<{ success: boolean; message: string; response?: any }> {
-  const portalWebhookUrl = process.env.PORTAL_WEBHOOK_URL || 'https://your-portal-url-here/api/webhooks/nailsurgery';
-  const webhookSecret = process.env.NAIL_WEBHOOK_SECRET || 'nailsurgery_secret_2025';
+  const portalWebhookUrl = process.env.PORTAL_WEBHOOK_URL || 'https://eteaportal.engageiobots.com/api/webhooks/nailsurgery';
+  const webhookSecret = process.env.NAIL_WEBHOOK_SECRET || '';
   
   try {
     console.log('🔄 Submitting webhook to portal...');
     
-    let imageUrl = null;
+    // Upload image to Supabase if provided and add URL to data
     if (imageData) {
       console.log('📸 Processing image for webhook...');
-      imageUrl = await uploadBase64Image(imageData);
+      const imageUrl = await uploadBase64Image(imageData);
       
       if (imageUrl) {
         data.image_url = imageUrl;
@@ -175,31 +175,33 @@ export async function submitWebhook(
       }
     }
 
-    // Prepare form data for multipart request
+    // Create FormData using Node.js form-data package (Node 18 compatible)
+    const FormData = require('form-data');
     const formData = new FormData();
     
     // Add the JSON data as a field
     formData.append('data', JSON.stringify(data));
     
-    // If we have image data, add it as a separate field
+    // If we have image data, add it as a file field
     if (imageData) {
-      // Extract the actual base64 data (remove the data:image/png;base64, prefix)
       const matches = imageData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
       if (matches && matches.length === 3) {
         const base64Data = matches[2];
         const contentType = matches[1];
         const buffer = Buffer.from(base64Data, 'base64');
-        const blob = new Blob([buffer], { type: contentType });
-        formData.append('image', blob, 'patient_image.png');
+        formData.append('image', buffer, {
+          filename: 'patient_image.png',
+          contentType: contentType
+        });
       }
     }
     
-    // Make the request with correct headers
+    // Make the request using fetch with FormData
     const response = await fetch(portalWebhookUrl, {
       method: 'POST',
       headers: {
         'X-Webhook-Secret': webhookSecret,
-        // Content-Type is set automatically by fetch when using FormData
+        ...formData.getHeaders()
       },
       body: formData
     });

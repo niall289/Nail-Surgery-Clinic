@@ -358,6 +358,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dev-only debug endpoint for webhook testing
+  app.get(`${apiPrefix}/debug/test-webhook`, async (_req, res) => {
+    // Only enable in development
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    try {
+      console.log('🧪 Debug webhook test initiated...');
+      
+      const testData = {
+        name: 'Debug Test Patient',
+        email: 'debug-test@example.com',
+        phone: '07999123456',
+        issue_category: 'nail_infection',
+        issue_specifics: 'Debug webhook test from GET endpoint',
+        symptoms: 'Test symptoms for debug',
+        has_image: true,
+        test_mode: true
+      };
+
+      // Create a simple test image (small red square)
+      const testImageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwQAADsEBuJFr7QAAABl0RVh0U29mdHdhcmUAcGFpbnQubmV0IDQuMC4xMK0KCsAAAAFCSURBVDhPtZS9TsMwFEa9gQMzA2JhYU8kYGEAqVKnSiUzO+9TsYLUggEWGGBg4MGYmBgRM1CWwrFCHH/FKfiTjuTY95x7HefaCl20t3Hdrx/zzDwiT/TMz+k1MKwvyevsZ57xLcvyO/K28V2v+Gkc5cWxOQ0tJ5RQmm6XqCyL3kq1uKXFtawSg1GwCd+mNTnVNV1UqNInbj6wZcbA+tu0IPgR31IZ7YHnMB+ZP6bFOGi28bMQOOQ/s0xn0lJT4DmYtIc6i0PSzh5GGrjl+8vXUk9JuXYKZu0V6pcCw5HvmkBaXO0MXPI/RVFcNYFZlj3SepdgcTz1vgnUXHDHt/JQWm0FQGGPfM8YalIGloLZtIsKbSEQzi4FbooT+ovUw/GDdKD5sT7KY5uQVraGLP2WaOWs/1j3/D/tSJj/3Ku3RP+u5L0LAAIqvyPw2IcAAAAASUVORK5CYII=';
+
+      const result = await submitWebhook(testData, testImageBase64);
+      
+      console.log('🧪 Debug test result:', JSON.stringify(result, null, 2));
+      
+      res.status(200).json({
+        message: "Debug webhook test completed",
+        testData,
+        result,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("❌ Debug webhook test error:", error);
+      res.status(500).json({ 
+        error: "Debug webhook test failed", 
+        details: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   const server = createServer(app);
   return server;
 }
