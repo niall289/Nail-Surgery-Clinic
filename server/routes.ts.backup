@@ -5,7 +5,63 @@ import * as schema from "../shared/schema.js";
 import { z } from "zod";
 import { generateNurseImage } from "./services/imageGeneration.js";
 import { analyzeFootImage } from "./services/openai.js";
-import { analyzeSymptoms } from "./services/symptomAnalysis.js";
+import { analyzeSympto  // Test endpoint for webhook submission
+  app.post(`${apiPrefix}/test-webhook`, async (_req, res) => {
+    try {
+      await testWebhookSubmission();
+      res.status(200).json({ message: "Webhook test completed, check server logs for details" });
+    } catch (error) {
+      console.error("âŒ Test webhook error:", error);
+      res.status(500).json({ error: "Test webhook failed", details: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // Dev-only debug endpoint for webhook testing
+  app.get(`${apiPrefix}/debug/test-webhook`, async (_req, res) => {
+    // Only enable in development
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    try {
+      console.log('🧪 Debug webhook test initiated...');
+      
+      const testData = {
+        name: 'Debug Test Patient',
+        email: 'debug-test@example.com',
+        phone: '07999123456',
+        issue_category: 'nail_infection',
+        issue_specifics: 'Debug webhook test from GET endpoint',
+        symptoms: 'Test symptoms for debug',
+        has_image: true,
+        test_mode: true
+      };
+
+      // Create a simple test image (small red square)
+      const testImageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwQAADsEBuJFr7QAAABl0RVh0U29mdHdhcmUAcGFpbnQubmV0IDQuMC4xMK0KCsAAAAFCSURBVDhPtZS9TsMwFEa9gQMzA2JhYU8kYGEAqVKnSiUzO+9TsYLUggEWGGBg4MGYmBgRM1CWwrFCHH/FKfiTjuTY95x7HefaCl20t3Hdrx/zzDwiT/TMz+k1MKwvyevsZ57xLcvyO/K28V2v+Gkc5cWxOQ0tJ5RQmm6XqCyL3kq1uKXFtawSg1GwCd+mNTnVNV1UqNInbj6wZcbA+tu0IPgR31IZ7YHnMB+ZP6bFOGi28bMQOOQ/s0xn0lJT4DmYtIc6i0PSzh5GGrjl+8vXUk9JuXYKZu0V6pcCw5HvmkBaXO0MXPI/RVFcNYFZlj3SepdgcTz1vgnUXHDHt/JQWm0FQGGPfM8YalIGloLZtIsKbSEQzi4FbooT+ovUw/GDdKD5sT7KY5uQVraGLP2WaOWs/1j3/D/tSJj/3Ku3RP+u5L0LAAIqvyPw2IcAAAAASUVORK5CYII=';
+
+      const result = await submitWebhook(testData, testImageBase64);
+      
+      console.log('🧪 Debug test result:', JSON.stringify(result, null, 2));
+      
+      res.status(200).json({
+        message: "Debug webhook test completed",
+        testData,
+        result,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("❌ Debug webhook test error:", error);
+      res.status(500).json({ 
+        error: "Debug webhook test failed", 
+        details: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  const server = createServer(app);
+  return server;services/symptomAnalysis.js";
 import { exportConsultationsToCSV, exportSingleConsultationToCSV } from "./services/csvExport.js";
 import { submitWebhook, uploadBase64Image, testWebhookSubmission } from "./supabase.js";
 import path from "path";
@@ -92,7 +148,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Forward to portal webhook
         try {
           const imageData = validatedData.image_path?.startsWith('data:image/') ? validatedData.image_path : undefined;
-          // Note: submitWebhook will now enrich the data automatically
           const webhookResult = await submitWebhook(validatedData, imageData);
           
           if (webhookResult.success) {
@@ -356,69 +411,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("âŒ Test webhook error:", error);
       res.status(500).json({ error: "Test webhook failed", details: error instanceof Error ? error.message : String(error) });
-    }
-  });
-
-  // Dev-only debug endpoint for webhook testing
-  app.get(`${apiPrefix}/debug/test-webhook`, async (_req, res) => {
-    // Allow in development or when ENABLE_DEBUG is set
-    if (process.env.NODE_ENV === 'production' && !process.env.ENABLE_DEBUG) {
-      return res.status(404).json({ error: "Not found" });
-    }
-
-    try {
-      console.log('🧪 Debug webhook test initiated...');
-      
-      const testData = {
-        // Required fields
-        name: 'Debug Test Patient',
-        email: 'debug-test@example.com',
-        phone: '07999123456',
-        
-        // Core consultation data
-        issue_category: 'Ingrown Toenail',
-        symptom_description: 'Debug webhook test - patient experiencing pain and swelling around toenail',
-        issue_specifics: 'Debug webhook test from GET endpoint',
-        
-        // Clinical data
-        previous_treatment: 'None attempted',
-        pain_severity: '7/10',
-        pain_duration: '2 weeks',
-        
-        // Clinic routing 
-        source: 'nailsurgery',
-        chatbotSource: 'nailsurgery',
-        clinic_group: 'The Nail Surgery Clinic',
-        clinic_domain: 'nailsurgeryclinic.engageiobots.com',
-        preferred_clinic: 'Main Office',
-        
-        // Internal tracking
-        test_mode: true
-      };
-
-      // Create a simple test image (small red square)
-      const testImageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwQAADsEBuJFr7QAAABl0RVh0U29mdHdhcmUAcGFpbnQubmV0IDQuMC4xMK0KCsAAAAFCSURBVDhPtZS9TsMwFEa9gQMzA2JhYU8kYGEAqVKnSiUzO+9TsYLUggEWGGBg4MGYmBgRM1CWwrFCHH/FKfiTjuTY95x7HefaCl20t3Hdrx/zzDwiT/TMz+k1MKwvyevsZ57xLcvyO/K28V2v+Gkc5cWxOQ0tJ5RQmm6XqCyL3kq1uKXFtawSg1GwCd+mNTnVNV1UqNInbj6wZcbA+tu0IPgR31IZ7YHnMB+ZP6bFOGi28bMQOOQ/s0xn0lJT4DmYtIc6i0PSzh5GGrjl+8vXUk9JuXYKZu0V6pcCw5HvmkBaXO0MXPI/RVFcNYFZlj3SepdgcTz1vgnUXHDHt/JQWm0FQGGPfM8YalIGloLZtIsKbSEQzi4FbooT+ovUw/GDdKD5sT7KY5uQVraGLP2WaOWs/1j3/D/tSJj/3Ku3RP+u5L0LAAIqvyPw2IcAAAAASUVORK5CYII=';
-
-      // Call the updated submitWebhook function
-      const result = await submitWebhook(testData, testImageBase64);
-      
-      console.log('🧪 Debug test result:', JSON.stringify(result, null, 2));
-      
-      // Return the raw webhook response JSON for easier debugging
-      res.status(200).json({
-        message: "Debug webhook test completed",
-        testData,
-        webhookResponse: result.response,  // Raw response from webhook
-        result,  // Full result object
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error("❌ Debug webhook test error:", error);
-      res.status(500).json({ 
-        error: "Debug webhook test failed", 
-        details: error instanceof Error ? error.message : String(error),
-        timestamp: new Date().toISOString()
-      });
     }
   });
 

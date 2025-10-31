@@ -4,6 +4,21 @@ import { createReadStream } from 'fs';
 import { Readable } from 'stream';
 import path from 'path';
 
+/**
+ * Enriches consultation data with proper clinic routing information
+ * @param data - The consultation data to enrich
+ * @returns Enriched data with clinic routing fields
+ */
+function enrichConsultationData(data: any) {
+  return {
+    ...data,
+    source: 'nailsurgery',
+    chatbotSource: 'nailsurgery',
+    clinic_group: 'The Nail Surgery Clinic',
+    clinic_domain: 'nailsurgeryclinic.engageiobots.com',
+  };
+}
+
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -156,31 +171,59 @@ export async function submitWebhook(
   data: any, 
   imageData?: string
 ): Promise<{ success: boolean; message: string; response?: any }> {
-  const portalWebhookUrl = process.env.PORTAL_WEBHOOK_URL || 'https://eteaportal.engageiobots.com/api/webhooks/nailsurgery';
-  const webhookSecret = process.env.NAIL_WEBHOOK_SECRET || '';
+  const portalUrl = (process.env.PORTAL_WEBHOOK_URL || 'https://eteaportal.engageiobots.com/api/webhooks/nailsurgery').trim();
+  const webhookSecret = (process.env.NAIL_WEBHOOK_SECRET ?? process.env.WEBHOOK_SECRET ?? '').trim();
+  
+  // Check for missing webhook secret
+  if (!webhookSecret) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('❌ NAIL_WEBHOOK_SECRET missing');
+    }
+    return { 
+      success: false, 
+      message: 'NAIL_WEBHOOK_SECRET missing' 
+    };
+  }
   
   try {
-    console.log('🔄 Submitting webhook to portal...');
+    // Dev-only logging
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔄 Submitting webhook to portal...');
+      console.log('  Portal URL:', portalUrl);
+      console.log('  Webhook Secret:', webhookSecret.slice(0, 3) + '…');
+      
+      // Log truncated payload preview
+      const payloadPreview = JSON.stringify(data).substring(0, 500);
+      console.log('  Payload preview:', payloadPreview + (JSON.stringify(data).length > 500 ? '...' : ''));
+    }
     
     // Upload image to Supabase if provided and add URL to data
     if (imageData) {
-      console.log('📸 Processing image for webhook...');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('📸 Processing image for webhook...');
+      }
       const imageUrl = await uploadBase64Image(imageData);
       
       if (imageUrl) {
         data.image_url = imageUrl;
-        console.log('✅ Image uploaded and URL added to payload');
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('✅ Image uploaded and URL added to payload');
+        }
       } else {
-        console.warn('⚠️ Failed to upload image, continuing without image URL');
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('⚠️ Failed to upload image, continuing without image URL');
+        }
       }
     }
 
-    // Create FormData using Node.js form-data package (Node 18 compatible)
-    const FormData = require('form-data');
+    // Create FormData using Node 18 built-in FormData
     const formData = new FormData();
     
+    // Enrich the data with clinic routing information
+    const enrichedData = enrichConsultationData(data);
+    
     // Add the JSON data as a field
-    formData.append('data', JSON.stringify(data));
+    formData.append('data', JSON.stringify(enrichedData));
     
     // If we have image data, add it as a file field
     if (imageData) {
@@ -189,19 +232,19 @@ export async function submitWebhook(
         const base64Data = matches[2];
         const contentType = matches[1];
         const buffer = Buffer.from(base64Data, 'base64');
-        formData.append('image', buffer, {
-          filename: 'patient_image.png',
-          contentType: contentType
-        });
+        
+        // Create a Blob from the buffer for the FormData
+        const blob = new Blob([buffer], { type: contentType });
+        formData.append('image', blob, 'patient_image.png');
       }
     }
     
     // Make the request using fetch with FormData
-    const response = await fetch(portalWebhookUrl, {
+    const response = await fetch(portalUrl, {
       method: 'POST',
       headers: {
-        'X-Webhook-Secret': webhookSecret,
-        ...formData.getHeaders()
+        'X-Webhook-Secret': webhookSecret
+        // Don't set Content-Type header - let fetch set it automatically for FormData
       },
       body: formData
     });
@@ -216,7 +259,9 @@ export async function submitWebhook(
     }
     
     if (response.ok) {
-      console.log('✅ Webhook submission successful');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('✅ Webhook submission successful');
+      }
       return {
         success: true,
         message: 'Webhook submitted successfully',
@@ -249,6 +294,11 @@ export async function testWebhookSubmission(): Promise<void> {
     phone: '07123456789',
     issue_category: 'nail_problem',
     issue_specifics: 'Test webhook submission',
+    preferred_clinic: 'The Nail Surgery Clinic',
+    clinic_domain: 'nailsurgeryclinic.engageiobots.com',
+    source: 'nailsurgery',
+    chatbotSource: 'nailsurgery',
+    clinic_group: 'The Nail Surgery Clinic',
     test_mode: true
   };
   

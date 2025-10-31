@@ -1,8 +1,18 @@
-﻿import express, { type Request, Response, NextFunction } from "express";
+﻿import dotenv from 'dotenv';
+dotenv.config();
+
+import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes.js";
 import { setupVite, serveStatic, log } from "./vite.js";
-import dotenv from 'dotenv';
-dotenv.config();
+
+// Environment variable logging at startup
+console.log('🔧 Environment Configuration:');
+console.log('  NODE_ENV:', process.env.NODE_ENV || 'development');
+console.log('  PORTAL_WEBHOOK_URL:', process.env.PORTAL_WEBHOOK_URL || 'NOT SET');
+console.log('  NAIL_WEBHOOK_SECRET:', process.env.NAIL_WEBHOOK_SECRET ? 
+  process.env.NAIL_WEBHOOK_SECRET.slice(0, 5) + '...' : 'NOT SET');
+console.log('  OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? 'SET' : 'NOT SET');
+console.log('  SUPABASE_URL:', process.env.SUPABASE_URL ? 'SET' : 'NOT SET');
 
 const app = express();
 import cors from 'cors';
