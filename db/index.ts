@@ -1,29 +1,34 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { createClient } from '@supabase/supabase-js';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as schema from "@shared/schema";
 
-// This is the correct way neon config - DO NOT change this
-neonConfig.webSocketConstructor = ws;
-
-let pool: Pool | null = null;
 let db: ReturnType<typeof drizzle> | null = null;
+let supabase: ReturnType<typeof createClient> | null = null;
 
-if (!process.env.DATABASE_URL) {
+if (!process.env.DATABASE_URL || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
   console.warn(
-    "WARNING: DATABASE_URL is not set for chatbot-nailsurgery-client1. Database operations will not work. Running in mock/limited mode."
+    "WARNING: Required database environment variables are not set. Database operations will not work. Running in mock/limited mode."
   );
 } else {
   try {
-    pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    // @ts-ignore schema might not be fully compatible if db is null, but this is for a simplified test
-    db = drizzle({ client: pool, schema });
+    // Create Supabase client
+    supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    // Create postgres client for Drizzle
+    const client = postgres(process.env.DATABASE_URL);
+    db = drizzle(client, { schema });
+
+    console.log("✅ Successfully connected to Supabase database");
   } catch (error) {
-    console.error("Failed to connect to the database for chatbot-nailsurgery-client1:", error);
-    console.warn("Continuing to run chatbot-nailsurgery-client1 in mock/limited mode due to database connection failure.");
-    pool = null;
+    console.error("Failed to connect to Supabase database:", error);
+    console.warn("Continuing to run in mock/limited mode due to database connection failure.");
+    supabase = null;
     db = null;
   }
 }
 
-export { pool, db };
+export { supabase, db };

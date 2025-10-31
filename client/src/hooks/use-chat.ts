@@ -93,13 +93,22 @@ export default function useChat({ consultationId, onSaveData, onImageUpload }: U
       const currentUserData = overrideUserData || userData;
 
       try {
-        // Prepare consultation data for submission
+        // Prepare consultation data for submission with proper routing fields
         const consultationData = {
+          // Patient Information
           name: currentUserData.name,
           email: currentUserData.email,
           phone: currentUserData.phone,
-          clinic: "nailsurgery", // Set clinic based on chatbot
-          preferred_clinic: currentUserData.preferred_clinic,
+
+          // Clinic Routing Information
+          source: "nailsurgery",
+          chatbotSource: "nailsurgery",
+          clinic_group: "The Nail Surgery Clinic",
+          clinic: "nailsurgery",
+          clinic_domain: "nailsurgeryclinic.engageiobots.com",
+          preferred_clinic: currentUserData.preferred_clinic || "Nail Surgery Clinic",
+
+          // Consultation Details
           issue_category: currentUserData.issue_category,
           issue_specifics: currentUserData.ingrown_followup || currentUserData.fungal_followup || currentUserData.trauma_followup || currentUserData.fingernail_followup || currentUserData.other_followup,
           symptom_description: currentUserData.symptom_description,
