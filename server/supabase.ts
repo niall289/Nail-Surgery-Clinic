@@ -9,13 +9,24 @@ import path from 'path';
  * @param data - The consultation data to enrich
  * @returns Enriched data with clinic routing fields
  */
+/**
+ * Enriches consultation data with proper clinic routing information
+ * Ensures all submissions have the correct routing fields for Nail Surgery Clinic
+ */
 function enrichConsultationData(data: any) {
   return {
     ...data,
+    // Core routing fields
     source: 'nailsurgery',
     chatbotSource: 'nailsurgery',
     clinic_group: 'The Nail Surgery Clinic',
     clinic_domain: 'nailsurgeryclinic.engageiobots.com',
+    
+    // Set preferred clinic if not already set
+    preferred_clinic: data.preferred_clinic || 'Nail Surgery Clinic',
+    
+    // Additional routing identifiers
+    clinic: 'nailsurgery',
   };
 }
 
@@ -191,13 +202,7 @@ export async function submitWebhook(
       console.log('🔄 Submitting webhook to portal...');
       console.log('  Portal URL:', portalUrl);
       console.log('  Webhook Secret:', webhookSecret.slice(0, 3) + '…');
-      
-      // Log truncated payload preview
-      const payloadPreview = JSON.stringify(data).substring(0, 500);
-      console.log('  Payload preview:', payloadPreview + (JSON.stringify(data).length > 500 ? '...' : ''));
     }
-    
-    // Upload image to Supabase if provided and add URL to data
     if (imageData) {
       if (process.env.NODE_ENV !== 'production') {
         console.log('📸 Processing image for webhook...');
@@ -221,9 +226,26 @@ export async function submitWebhook(
     
     // Enrich the data with clinic routing information
     const enrichedData = enrichConsultationData(data);
+
+    // Log the data being sent (dev only)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('📤 Webhook Payload:');
+      console.log('Original data:', JSON.stringify(data, null, 2));
+      console.log('Enriched data:', JSON.stringify(enrichedData, null, 2));
+    }
     
-    // Add the JSON data as a field
-    formData.append('data', JSON.stringify(enrichedData));
+    // Add each field individually to the root of the FormData
+    console.log('🔍 FormData Construction:');
+    Object.entries(enrichedData).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, value.toString());
+        console.log(`  - Adding field "${key}": ${typeof value === 'object' ? JSON.stringify(value) : value}`);
+      }
+    });
+    
+    // Log the final FormData entries
+    console.log('📦 Final FormData fields:');
+    console.log('  Fields added:', Object.keys(enrichedData).filter(key => enrichedData[key] != null));
     
     // If we have image data, add it as a file field
     if (imageData) {
@@ -289,27 +311,51 @@ export async function submitWebhook(
  */
 export async function testWebhookSubmission(): Promise<void> {
   const testData = {
-    name: 'Test Patient',
-    email: 'test@example.com',
+    // Patient Information
+    name: 'test patient',
+    email: 'test@nailsurgery.test',
     phone: '07123456789',
-    issue_category: 'nail_problem',
-    issue_specifics: 'Test webhook submission',
-    preferred_clinic: 'The Nail Surgery Clinic',
-    clinic_domain: 'nailsurgeryclinic.engageiobots.com',
+    
+    // Consultation Details
+    issue_category: 'Ingrown Toenail',
+    issue_specifics: 'webhook test submission',
+    symptom_description: 'webhook test submission - testing clinic group routing',
+    preferred_clinic: 'Nail Surgery Clinic',
+    
+    // Routing Information
     source: 'nailsurgery',
     chatbotSource: 'nailsurgery',
     clinic_group: 'The Nail Surgery Clinic',
-    test_mode: true
+    clinic_domain: 'nailsurgeryclinic.engageiobots.com',
+    
+    // Test Flags
+    test_mode: true,
+    is_test: true
   };
   
-  console.log('🧪 Running webhook test with data:', testData);
+  console.log('\n🧪 STARTING WEBHOOK TEST');
+  console.log('📅 Test Timestamp:', new Date().toISOString());
+  console.log('\n📋 Test Data:');
+  Object.entries(testData).forEach(([key, value]) => {
+    console.log(`  ${key.padEnd(20)}: ${value}`);
+  });
   
   // Create a simple test image (a small red square)
-  const testImageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwQAADsEBuJFr7QAAABl0RVh0U29mdHdhcmUAcGFpbnQubmV0IDQuMC4xMK0KCsAAAAFCSURBVDhPtZS9TsMwFEa9gQMzA2JhYU8kYGEAqVKnSiUzO+9TsYLUggEWGGBg4MGYmBgRM1CWwrFCHH/FKfiTjuTY95x7HefaCl20t3Hdrx/zzDwiT/TMz+k1MKwvyevsZ57xLcvyO/K28V2v+Gkc5cWxOQ0tJ5RQmm6XqCyL3kq1uKXFtawSg1GwCd+mNTnVNV1UqNInbj6wZcbA+tu0IPgR31IZ7YHnMB+ZP6bFOGi28bMQOOQ/s0xn0lJT4DmYtIc6i0PSzh5GGrjl+8vXUk9JuXYKZu0V6pcCw5HvmkBaXO0MXPI/RVFcNYFZlj3SepdgcTz1vgnUXHDHt/JQWm0FQGGPfM8YalIGloLZtIsKbSEQzi4FbooT+ovUw/GDdKD5sT7KY5uQVraGLP2WaOWs/1j3/D/tSJj/3Ku3RP+u5L0LAAIqvyPw2IcAAAAASUVORK5CYII=';
+  // We'll include a unique timestamp in the test image name
+  const timestamp = new Date().toISOString().replace(/[:.-]/g, '_');
+  const testImageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6RjlCOUI0QjAwRDY2MTFFNThCOThDMUVBNjk1RkE4MDIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6RjlCOUI0QjEwRDY2MTFFNThCOThDMUVBNjk1RkE4MDIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpGOUI5QjRBRTBENjYxMUU1OEI5OEMxRUE2OTVGQTgwMiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpGOUI5QjRBRjBENjYxMUU1OEI5OEMxRUE2OTVGQTgwMiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PgH//v38+/r5+Pf29fTz8vHw7+7t7Ovq6ejn5uXk4+Lh4N/e3dzb2tnY19bV1NPS0dDPzs3My8rJyMfGxcTDwsHAv769vLu6ubi3trW0s7KxsK+urayrqqmop6alpKOioaCfnp2cm5qZmJeWlZSTkpGQj46NjIuKiYiHhoWEg4KBgH9+fXx7enl4d3Z1dHNycXBvbm1sa2ppaGdmZWRjYmFgX15dXFtaWVhXVlVUU1JRUE9OTUxLSklIR0ZFRENCQUA/Pj08Ozo5ODc2NTQzMjEwLy4tLCsqKSgnJiUkIyIhIB8eHRwbGhkYFxYVFBMSERAPDg0MCwoJCAcGBQQDAgEAACH5BAEAAAAALAAAAAAUABQAAAaQQIBwSCwaj8ikcslsOp/QqHRKrVqv2Kx2y+16v+CweEwum8/otHrNbrvf8Lh8Tq/b7/i8fs/v+/+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wADChxIsKDBgwgTKlzIsKHDhxAjSpxIsaLFixgzatzIsaPHjyBDihxJsqTJkyhTqlzJsqXLlzBjypxJs6bNmzhz6tzJs6fPn0CDCh1KtKjRo0iTKl3KtKnTp1CjSp1KtarVq1izat3KtavXr2DDih1LtqzZs2jTql3Ltq3bt3Djyp1Lt67du3jz6t3Lt6/fv4ADCx5MuLDhw4gTK17MuLHjx5AjS55MubLly5gza97MubPnz6BDix5NurTp06hTq17NurXr17Bjy55Nu7bt27hz697Nu7fv38CDCx9OvLjx48iTK1/OvLnz59CjS59Ovbr169iza9/Ovbv37+DDix9Pvrz58+jTq1/Pvr379/Djy59Pv779+/jz69/Pv7///wAGKOCABBZo4IEIJqjgggw26OCDEEYo4YQUVmjhhRhmqOGGHHbo4YcghijiiCSWaOKJKKao4oostujiizDGKOOMNNZo44045qjjjjz26OOPQAYp5JBEFmnkkUgmqeSSTDbp5JNQRinllFRWaeWVWGap5ZZcdunll2CGKeaYZJZp5plopqnmmmy26eabcMYp55x01mnnnXjmqeeefPbp55+ABirooIQWauihiCaq6KKMNuroo5BGKumklFZq6aWYZqrpppx26umnoIYq6qiklmrqqaimquqqrLbq6quwxirrrLTWauutuOaq66689urrr8AGK+ywxBZr7LHIJqvsssw26+yz0EYr7bTUVmvttdhmq+223Hbr7bfghivuuOSWa+656Kar7rrstuvuu/DGK++89NZr77345qvvvvz26++/AAcs8MAEF2zwwQgnrPDCDDfs8MMQRyzxxBRXbPHFGGes8cYcd+zxxyCHLPLIJJds8skop6zyyiy37PLLMMcs88w012zzzTjnrPPOPPfs889ABy300EQXbfTRSCet9NJMN+3001BHLfXUVFdt9dVYZ6311lx37fXXYIct9thkl2322WinrfbabLft9ttwxy333HTXbffdeOet99589+3334AHLvjghBdu+OGIJ6744ow37vjjkEcu+eSUV2755ZhnrvnmnHfu+eeghy766KSXbvrpqKeu+uqst+7667DHLvvstNdu++2456777rz37vvvwAcv/PDEF2/88cgnr/zyzDfv/PPQRy/99NRXb/312Gev/fbcd+/99+CHL/745Jdv/vnop6/++uy37/778Mcv//z012///fjnr//+/Pfv//8ADKAAB0jAAhrwgAhMoAIXyMAGOvCBEIygBCdIwQpa8IIYzKAGN8jBDnrwgyAMoQhHSMISmvCEKEyhClfIwha68IUwjKEMZ0jDGtrwhjjMoQ53yMMe+vCHQAyiEIdIxCIa8YhITKISl8jEJjrxiVCMohSnSMUqWvGKWMyiFrfIxS568YtgDKMYx0jGMprxjGhMoxrXyMY2uvGNcIyjHOdIxzra8Y54zKMe98jHPvrxj4AMpCAHSchCGvKQiEykIhfJyEY68pGQjKQkJ0nJSlrykpjMpCY3yclOevKToAylKEdJylKa8pSoTKUqV8nKVrrylbCMpSxnScta2vKWuMylLnfJy1768pfADKYwh0nMYhrzmMhMpjKXycxmOvOZ0IymNKdJzWpa85rYzKY2t8nNbnrzm+AMpzjHSc5ymvOc6EynOtfJzna6853wjKc850nPetrznvjMpz73yc9++vOfAA2oQAdK0IIa9KAITahCF8rQhjr0oRCNqEQnStGKWvSiGM2oRjfK0Y569KMgDalIR0rSkpr0pChNqUpXytKWuvSlMI2pTGdK05ra9KY4zalOd8rTnvr0p0ANqlCHStSiGvWoSE2qUpfK1KY69alQjapUp0rVqlr1qljNqla3ytWuevWrYA2rWMdK1rKa9axoTata18rWtrr1rXCNq1znSte62vWueM2rXvfK17769a+ADaxgB0vYwhr2sIhNrGIXy9jGOvaxkI2sZCdL2cpa9rKYzaxmN8vZznr2s6ANrWhHS9rSmva0qE2talfL2ta69rWwja1sZ0vb2tr2trjNrW53y9ve+va3wA2ucIdL3OIa97jITa5yl8vc5jr3udCNrnSnS93qWve62M2udrfL3e5697vgDa94x0ve8pr3vOhNr3rXy972uve98I2vfOdL3/ra9774za9+98vf/vr3vwAOsIAHTOACG/jACE6wghfM4AY7+MEQjrCEJ0zhClv4whjOsIY3zOEOe/jDIA6xiEdM4hKb+MQoTrGKV8ziFrv4xTCOsYxnTOMa2/jGOM6xjnfM4x77+MdADrKQh0zkIhv5yEhOspKXzOQmO/nJUI6ylKdM5Spb+cpYzrKWt8zlLnv5y2AOs5jHTOYym/nMaE6zmtfM5ja7+c1wjrOc50znOtv5znjOs573zOc++/nPgA60oAdN6EIb+tCITrSiF83oRjv60ZCOtKQnTelKW/rSmM60pjfN6U57+tOgDrWoR03qUpv61KhOtapXzepWu/rVsI61rGdN61rb+ta4zrWud83rXvv618AOtrCHTexiG/vYyE62spfN7GY7+9nQjra0p03talv72tjOtra3ze1ue/vb4A63uMdN7nKb+9zoTre6183udrv73fCOt7znTe962/ve+M63vvfN7377+98AD7jAB07wghv84AhPuMIXzvCGO/zhEI+4xCdO8Ypb/OIYz7jGN87xjnv84yAPuchHTvKSm/zkKE+5ylfO8pa7/OUwj7nMZ07zmtv85jjPuc53zvOe+/znQA+60IdO9KIb/ehIT7rSl870pjv96VCPutSnTvWqW/3qWM+61rfO9a57/etgD7vYx072spv97GhPu9rXzva2u/3tcI+73OdO97rb/e54z7ve9873vvv974APvOAHT/jCG/7wiE+84hfP+MY7/vGQj7zkJ0/5ylv+8pjPvOY3z/nOe/7zoA+96EdP+tKb/vSoT73qV8/61rv+9bCPvexnT/va2/72uM+97nfP+977/vfAD77wh0/84hv/+MhPvvKXz/zmO//50I++9KdP/epb//rYz772t8/97nv/++APv/jHT/7ym//86E+/+tfP/va7//3wj7/850//+tv//vjPv/73z//++///ABiAApiACliACJiACriADNiADviAEBiBEjiBFFiBFniBGJiBGriBHNiBHviBIBiCIjiCJFiCJniCKJiCKriCLNiCLviCMBiDMjiDNFiDNniDOJiDOriDPNiDPviDQBiEQjiERFiERniESJiESriETNiETviEUBiFUjiFVFiFVniFWJiFWriFXNiFXviFYBiGYjiGZFiGZniGaJiGariGbNiGbviGcBiHcjiHdFiHdniHeJiHeriHfNiHfviHgBiIgjiIhFiIhniIiJiIiriIjNiIjviIkBiJkjiJlFiJlniJmJiJmriJnNiJnviJoBiKojiKpFiKpniKqJiKqriKrNiKrviKsBiLsjiLtFiLtniLuJiLuriLvNiLvviLwBiMwjiMxFiMxniMyJiMyriMzNiMzviM0BiN0jiN1FiN1niN2JiN2riN3NiN3viN4BiO4jiO5FiO5niO6JiO6riO7NiO7viO8BiP8jiP9FiP9niP+JiP+riP/NiP/viPABmQAjmQBFmQBnmQCJmQCrmQDNmQDvmQEBmREjmRFFmRFnmRGJmRGrmRHNmRHvmRIBmSIjmSJFmSJnmSKJmSKrmSLNmSLvmSMBmTMjmTNFmTNnmTOJmTOrmTPNmTPvmTQBmUQjmURFmURnmUSJmUSrmUTNmUTvmUUBmVUjmVVFmVVnmVWJmVWrmVXNmVXvmVYBmWYjmWZFmWZnmWaJmWarmWbNmWbvmWcBmXcjmXdFmXdnmXeJmXermXfNmXfvmXgBmYgjmYhFmYhnmYiJmYirmYjNmYjvmYkBmZkjmZlFmZlnmZmJmZmrmZnNmZnvmZoBmaohmZCQAAOw==';
   
   const result = await submitWebhook(testData, testImageBase64);
   
-  console.log('🧪 Test result:', JSON.stringify(result, null, 2));
+  console.log('\n📊 Test Results:');
+  console.log('Success:', result.success ? '✅' : '❌');
+  console.log('Message:', result.message);
+  if (result.response) {
+    console.log('\nResponse Details:');
+    console.log(JSON.stringify(result.response, null, 2));
+  }
+  
+  console.log('\n🏁 TEST COMPLETE\n');
 }
 
 // Export a default object with all functions

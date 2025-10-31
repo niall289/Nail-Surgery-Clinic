@@ -5,47 +5,7 @@ import * as schema from "../shared/schema.js";
 import { z } from "zod";
 import { generateNurseImage } from "./services/imageGeneration.js";
 import { analyzeFootImage } from "./services/openai.js";
-import { analyze  // Test endpoint for webhook submission with payload inspection
-  app.post(`${apiPrefix}/test-webhook`, async (_req, res) => {
-    try {
-      const testData = {
-        name: 'Test Patient',
-        email: 'test@example.com',
-        phone: '07123456789',
-        issue_category: 'nail_problem',
-        issue_specifics: 'Test webhook submission',
-        test_mode: true
-      };
-
-      console.log('🧪 Test webhook preparation:');
-      console.log('1. Original test data:', testData);
-      
-      // Create a mock submission without actually sending
-      const enrichedData = {
-        ...testData,
-        source: 'nailsurgery',
-        chatbotSource: 'nailsurgery',
-        clinic_group: 'The Nail Surgery Clinic',
-        clinic_domain: 'nailsurgeryclinic.engageiobots.com',
-      };
-      
-      console.log('2. Enriched data:', enrichedData);
-      
-      // Now actually send the webhook
-      const result = await submitWebhook(enrichedData);
-      
-      res.status(200).json({ 
-        message: "Webhook test completed",
-        testData,
-        enrichedData,
-        webhook_url: process.env.PORTAL_WEBHOOK_URL,
-        result
-      });
-    } catch (error) {
-      console.error("❌ Test webhook error:", error);
-      res.status(500).json({ error: "Test webhook failed", details: error instanceof Error ? error.message : String(error) });
-    }
-  }); from "./services/symptomAnalysis.js";
+import { analyzeSymptoms } from "./services/symptomAnalysis.js";
 import { exportConsultationsToCSV, exportSingleConsultationToCSV } from "./services/csvExport.js";
 import { submitWebhook, uploadBase64Image, testWebhookSubmission } from "./supabase.js";
 import path from "path";
@@ -118,11 +78,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Missing field or value" });
       }
 
-      console.log(`ðŸ“¥ [Partial Sync] ${field}: ${value}`);
+      console.log(`🔥 [Partial Sync] ${field}: ${value}`);
 
       // If this is a final submission with complete consultation data
       if (consultationData && field === 'final_submission') {
-        console.log("ðŸ“ [Final Submission] Saving complete consultation to database");
+        console.log("📝 [Final Submission] Saving complete consultation to database");
 
         const validatedData = schema.insertConsultationSchema.parse(consultationData);
         const newConsultation = await storage.createConsultation(validatedData);
@@ -153,7 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(200).json({ success: true });
     } catch (error) {
-      console.error("âŒ Error in /webhook/partial:", error);
+      console.error("âŒ Error in /webhook/partial:", error);
       res.status(500).json({ error: "Failed to sync partial field" });
     }
   });
@@ -338,7 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate payload against schema
       const validatedData = schema.insertConsultationSchema.parse(req.body);
 
-      console.log("ðŸ”„ Proxying webhook to external server using Supabase...");
+      console.log("📄 Proxying webhook to external server using Supabase...");
       
       // Check if we have image data to include
       let imageBase64: string | undefined = undefined;
@@ -349,11 +309,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             imageBase64 = validatedData.image_path;
           } else {
             // Otherwise, try to read the file
-            console.log("ðŸ“¸ Processing local image for webhook...");
+            console.log("📸 Processing local image for webhook...");
             // We'll keep the image_path in the payload for reference
           }
         } catch (imageError) {
-          console.error("âš ï¸ Error processing image:", imageError);
+          console.error("⚠️ Error processing image:", imageError);
           // Continue without the image
         }
       }
@@ -362,13 +322,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const webhookResult = await submitWebhook(validatedData, imageBase64);
       
       if (webhookResult.success) {
-        console.log("âœ… External webhook success");
+        console.log("✅ External webhook success");
         res.status(200).json({
           message: "Webhook submitted successfully",
           response: webhookResult.response
         });
       } else {
-        console.error("âŒ External webhook failed:", webhookResult.message);
+        console.error("❌ External webhook failed:", webhookResult.message);
         res.status(200).json({
           message: "Webhook attempted",
           warning: webhookResult.message,
@@ -379,7 +339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ errors: error.errors });
       }
-      console.error("âŒ Webhook proxy error:", error);
+      console.error("❌ Webhook proxy error:", error);
       res.status(200).json({
         message: "Webhook attempted",
         warning: "External server connection failed",
@@ -388,13 +348,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Test endpoint for webhook submission
+  // Test endpoint for webhook submission with payload inspection
   app.post(`${apiPrefix}/test-webhook`, async (_req, res) => {
     try {
-      await testWebhookSubmission();
-      res.status(200).json({ message: "Webhook test completed, check server logs for details" });
+      const testData = {
+        name: 'Test Patient',
+        email: 'test@example.com',
+        phone: '07123456789',
+        issue_category: 'nail_problem',
+        issue_specifics: 'Test webhook submission',
+        test_mode: true
+      };
+
+      console.log('🧪 Test webhook preparation:');
+      console.log('1. Original test data:', testData);
+      
+      // Create a mock submission without actually sending
+      const enrichedData = {
+        ...testData,
+        source: 'nailsurgery',
+        chatbotSource: 'nailsurgery',
+        clinic_group: 'The Nail Surgery Clinic',
+        clinic_domain: 'nailsurgeryclinic.engageiobots.com',
+      };
+      
+      console.log('2. Enriched data:', enrichedData);
+      
+      // Now actually send the webhook
+      const result = await submitWebhook(enrichedData);
+      
+      res.status(200).json({ 
+        message: "Webhook test completed",
+        testData,
+        enrichedData,
+        webhook_url: process.env.PORTAL_WEBHOOK_URL,
+        result
+      });
     } catch (error) {
-      console.error("âŒ Test webhook error:", error);
+      console.error("❌ Test webhook error:", error);
       res.status(500).json({ error: "Test webhook failed", details: error instanceof Error ? error.message : String(error) });
     }
   });
