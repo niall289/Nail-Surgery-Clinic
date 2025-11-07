@@ -5,53 +5,50 @@ import * as schema from "../shared/schema.js";
 import { z } from "zod";
 import { generateNurseImage } from "./services/imageGeneration.js";
 import { analyzeFootImage } from "./services/openai.js";
-import { analyze  // Test endpoint for webhook submission with payload inspection
-  app.post(`${apiPrefix}/test-webhook`, async (_req, res) => {
-    try {
-      const testData = {
-        name: 'Test Patient',
-        email: 'test@example.com',
-        phone: '07123456789',
-        issue_category: 'nail_problem',
-        issue_specifics: 'Test webhook submission',
-        test_mode: true
-      };
-
-      console.log('🧪 Test webhook preparation:');
-      console.log('1. Original test data:', testData);
-      
-      // Create a mock submission without actually sending
-      const enrichedData = {
-        ...testData,
-        source: 'nailsurgery',
-        chatbotSource: 'nailsurgery',
-        clinic_group: 'The Nail Surgery Clinic',
-        clinic_domain: 'nailsurgeryclinic.engageiobots.com',
-      };
-      
-      console.log('2. Enriched data:', enrichedData);
-      
-      // Now actually send the webhook
-      const result = await submitWebhook(enrichedData);
-      
-      res.status(200).json({ 
-        message: "Webhook test completed",
-        testData,
-        enrichedData,
-        webhook_url: process.env.PORTAL_WEBHOOK_URL,
-        result
-      });
-    } catch (error) {
-      console.error("❌ Test webhook error:", error);
-      res.status(500).json({ error: "Test webhook failed", details: error instanceof Error ? error.message : String(error) });
-    }
-  }); from "./services/symptomAnalysis.js";
+import { analyzeSymptoms } from "./services/symptomAnalysis.js";
 import { exportConsultationsToCSV, exportSingleConsultationToCSV } from "./services/csvExport.js";
 import { submitWebhook, uploadBase64Image, testWebhookSubmission } from "./supabase.js";
 import path from "path";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const apiPrefix = "/api";
+    // Test endpoint for webhook submission with payload inspection
+    app.post(`${apiPrefix}/test-webhook`, async (_req, res) => {
+      try {
+        const testData = {
+          name: 'Test Patient',
+          email: 'test@example.com',
+          phone: '07123456789',
+          issue_category: 'nail_problem',
+          issue_specifics: 'Test webhook submission',
+          test_mode: true
+        };
+
+        console.log('🧪 Test webhook preparation:');
+        console.log('1. Original test data:', testData);
+        // Create a mock submission without actually sending
+        const enrichedData = {
+          ...testData,
+          source: 'nailsurgery',
+          chatbotSource: 'nailsurgery',
+          clinic_group: 'The Nail Surgery Clinic',
+          clinic_domain: 'nailsurgeryclinic.engageiobots.com',
+        };
+        console.log('2. Enriched data:', enrichedData);
+        // Now actually send the webhook
+        const result = await submitWebhook(enrichedData);
+        res.status(200).json({ 
+          message: "Webhook test completed",
+          testData,
+          enrichedData,
+          webhook_url: process.env.PORTAL_WEBHOOK_URL,
+          result
+        });
+      } catch (error) {
+        console.error("❌ Test webhook error:", error);
+        res.status(500).json({ error: "Test webhook failed", details: error instanceof Error ? error.message : String(error) });
+      }
+    });
 
   app.get(`${apiPrefix}/health`, async (_req, res) => {
     res.json({ ok: true, service: "nail-surgery-bot" });
