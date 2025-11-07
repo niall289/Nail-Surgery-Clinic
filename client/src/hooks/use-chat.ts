@@ -36,11 +36,12 @@ interface UseChatProps {
   onImageUpload: (file: File) => Promise<string>;
 }
 
-export default function useChat({ consultationId, onSaveData, onImageUpload }: UseChatProps) {
+export default function useChat({ consultationId: initialConsultationId, onSaveData, onImageUpload }: UseChatProps) {
   const [currentStep, setCurrentStep] = useState<keyof typeof chatFlow>("welcome");
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userData, setUserData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [consultationId, setConsultationId] = useState<number | null>(initialConsultationId || null);
   const [messageOverride, setMessageOverride] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -88,55 +89,66 @@ export default function useChat({ consultationId, onSaveData, onImageUpload }: U
     setIsLoading(true);
     await delay(step.delay || 600);
 
-    // Handle final consultation submission
-    if (stepKey === "submit_consultation") {
-      const currentUserData = overrideUserData || userData;
 
+    // Progressive save: create consultation after 'previous_treatment' step
+    if (stepKey === "previous_treatment" && !consultationId) {
+      const currentUserData = overrideUserData || userData;
       try {
-        // Prepare consultation data for submission with proper routing fields
         const consultationData = {
-          // Patient Information
           name: currentUserData.name,
           email: currentUserData.email,
           phone: currentUserData.phone,
-
-          // Clinic Routing Information
           source: "nailsurgery",
           chatbotSource: "nailsurgery",
           clinic_group: "The Nail Surgery Clinic",
           clinic: "nailsurgery",
           clinic_domain: "nailsurgeryclinic.engageiobots.com",
           preferred_clinic: currentUserData.preferred_clinic || "Nail Surgery Clinic",
-
-          // Consultation Details
           issue_category: currentUserData.issue_category,
           issue_specifics: currentUserData.ingrown_followup || currentUserData.fungal_followup || currentUserData.trauma_followup || currentUserData.fingernail_followup || currentUserData.other_followup,
           symptom_description: currentUserData.symptom_description,
           previous_treatment: currentUserData.previous_treatment === "yes" ? currentUserData.treatment_details : "no",
-          has_image: currentUserData.hasImage === "yes" ? "yes" : "no", // Schema expects string, not boolean
-          image_path: currentUserData.imagePath,
-          image_analysis: currentUserData.imageAnalysisResults ? JSON.stringify(currentUserData.imageAnalysisResults) : null,
-          pain_duration: null,
-          pain_severity: null,
-          additional_info: currentUserData.additional_help,
-          survey_response: currentUserData.emoji_survey,
-          conversation_log: JSON.stringify(currentUserData),
-          completed_steps: JSON.stringify(Object.keys(currentUserData))
         };
-
-        // Submit to webhook
-        await apiRequest("/api/webhook/partial", {
+        const response = await apiRequest("/api/consultations", {
           method: "POST",
-          body: JSON.stringify({
-            field: 'final_submission',
-            value: 'complete',
-            consultationData
-          }),
+          body: JSON.stringify(consultationData),
         });
-
-        console.log("✅ Consultation submitted successfully");
+        if (response && response.id) {
+          setConsultationId(response.id);
+          console.log("✅ Consultation created with ID:", response.id);
+        }
       } catch (error) {
-        console.error("❌ Failed to submit consultation:", error);
+        console.error("❌ Failed to create consultation:", error);
+      }
+    }
+
+    // PATCH updates at milestones if consultationId exists
+    const milestoneSteps = ["image_upload", "image_analysis", "symptom_description_prompt", "additional_help", "emoji_survey", "survey_response", "submit_consultation"];
+    if (consultationId && milestoneSteps.includes(stepKey)) {
+      const currentUserData = overrideUserData || userData;
+      try {
+        const patchData: Record<string, any> = {};
+        // Add fields relevant to the milestone
+        if (stepKey === "image_upload" && currentUserData.imagePath) patchData.image_path = currentUserData.imagePath;
+        if (stepKey === "image_analysis" && currentUserData.imageAnalysisResults) patchData.image_analysis = JSON.stringify(currentUserData.imageAnalysisResults);
+        if (stepKey === "symptom_description_prompt" && currentUserData.symptom_description) patchData.symptom_description = currentUserData.symptom_description;
+        if (stepKey === "additional_help" && currentUserData.additional_help) patchData.additional_info = currentUserData.additional_help;
+        if (stepKey === "emoji_survey" && currentUserData.emoji_survey) patchData.survey_response = currentUserData.emoji_survey;
+        if (stepKey === "survey_response" && currentUserData.survey_response) patchData.survey_response = currentUserData.survey_response;
+        // On final step, patch all data
+        if (stepKey === "submit_consultation") {
+          patchData.completed_steps = JSON.stringify(Object.keys(currentUserData));
+          patchData.conversation_log = JSON.stringify(currentUserData);
+        }
+        if (Object.keys(patchData).length > 0) {
+          await apiRequest(`/api/consultations/${consultationId}`, {
+            method: "PATCH",
+            body: JSON.stringify(patchData),
+          });
+          console.log(`✅ Consultation updated at step '${stepKey}'`);
+        }
+      } catch (error) {
+        console.error(`❌ Failed to update consultation at step '${stepKey}':`, error);
       }
     }
 
