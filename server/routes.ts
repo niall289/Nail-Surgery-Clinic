@@ -143,11 +143,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Progressive save logic: upsert (create or update) consultation record
       let upsertedConsultation = null;
+      
+      // Handle image upload if present in partial update
+      let updateData: any = { [field]: value };
+      if (field === 'image_path' && typeof value === 'string' && value.startsWith('data:image/')) {
+        try {
+          console.log(`[Partial Sync] Uploading image...`);
+          const publicUrl = await uploadBase64Image(value);
+          if (publicUrl) {
+            console.log(`[Partial Sync] Image uploaded successfully: ${publicUrl}`);
+            updateData = { 
+              image_path: publicUrl,
+              image_url: publicUrl,
+              has_image: true
+            };
+          }
+        } catch (error) {
+          console.error(`[Partial Sync] Error uploading image:`, error);
+        }
+      }
+
       if (consultationId) {
         // Update existing consultation (non-destructive)
         try {
-          upsertedConsultation = await storage.updateConsultation(Number(consultationId), { [field]: value });
-          console.log(`[Progressive Save] Updated consultation ID: ${consultationId} with { ${field}: ${JSON.stringify(value)} }`);
+          upsertedConsultation = await storage.updateConsultation(Number(consultationId), updateData);
+          console.log(`[Progressive Save] Updated consultation ID: ${consultationId} with { ${field}: ${JSON.stringify(value).substring(0, 50)}... }`);
         } catch (err) {
           console.error(`[Progressive Save] Failed to update consultation ID: ${consultationId}`, err);
         }
@@ -155,8 +175,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create new consultation if no ID (first milestone)
         try {
           // Accept partial/incomplete data for progressive save (no strict validation)
-          upsertedConsultation = await storage.createConsultation({ ...consultationData, [field]: value });
-          console.log(`[Progressive Save] Created new consultation with { ${field}: ${JSON.stringify(value)} }`);
+          upsertedConsultation = await storage.createConsultation({ ...consultationData, ...updateData });
+          console.log(`[Progressive Save] Created new consultation with { ${field}: ${JSON.stringify(value).substring(0, 50)}... }`);
         } catch (err) {
           console.error(`[Progressive Save] Failed to create consultation`, err);
         }
@@ -175,6 +195,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const consultation = await storage.getConsultationById(id);
     if (!consultation) return res.status(404).json({ error: "Consultation not found" });
+
+    // Handle image upload if present
+    if (req.body.image_path && req.body.image_path.startsWith('data:image/')) {
+      try {
+        console.log(`[PATCH] Uploading image for consultation ${id}...`);
+        const publicUrl = await uploadBase64Image(req.body.image_path);
+        if (publicUrl) {
+          console.log(`[PATCH] Image uploaded successfully: ${publicUrl}`);
+          req.body.image_url = publicUrl;
+          // Update image_path to be the URL as well, to avoid storing base64 in DB
+          req.body.image_path = publicUrl; 
+          req.body.has_image = true;
+        } else {
+          console.error(`[PATCH] Failed to upload image for consultation ${id}`);
+        }
+      } catch (error) {
+        console.error(`[PATCH] Error uploading image:`, error);
+      }
+    }
 
     const updated = await storage.updateConsultation(id, req.body);
     res.status(200).json(updated);
