@@ -195,6 +195,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
               image_url: publicUrl,
               has_image: true
             };
+
+            // NEW: Send to portal immediately if we have enough context
+            // This ensures the portal gets the image even if the user drops off later
+            if (consultationData) {
+              console.log("[Partial Sync] Attempting to sync image to portal immediately...");
+              
+              // Construct a payload with the new image URL
+              const webhookPayload = {
+                ...consultationData,
+                ...updateData // This overrides image_path with the URL
+              };
+
+              // We call submitWebhook. Since we already have the URL in webhookPayload.image_url (via updateData),
+              // we don't need to pass the base64 as the second argument.
+              // submitWebhook will see the URL and use it.
+              submitWebhook(webhookPayload).then(result => {
+                if (result.success) {
+                  console.log("✅ [Partial Sync] Image synced to portal successfully");
+                } else {
+                  console.warn("⚠️ [Partial Sync] Failed to sync image to portal:", result.message);
+                }
+              }).catch(err => {
+                console.error("❌ [Partial Sync] Error syncing image to portal:", err);
+              });
+            }
           }
         } catch (error) {
           console.error(`[Partial Sync] Error uploading image:`, error);

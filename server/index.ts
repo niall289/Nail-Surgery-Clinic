@@ -2,6 +2,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes.js";
 import { setupVite, serveStatic, log } from "./vite.js";
+import { cleanupBase64Images } from "./cleanup.js";
 
 // Environment variable logging at startup
 console.log('🔧 Environment Configuration:');
@@ -68,5 +69,8 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || "5021");
   server.listen(port, "0.0.0.0", () => {
     log(`Express server running on port ${port}`);
+    
+    // Run cleanup on startup
+    cleanupBase64Images().catch(err => console.error("Startup cleanup failed:", err));
   });
 })();
