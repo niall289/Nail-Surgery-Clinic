@@ -41,6 +41,56 @@ export const storage = {
     if (!db) {
       logMockWarningChatbot('createConsultation', data);
       // ... mock implementation ...
+      const mockConsultation: Consultation = {
+        id: Math.floor(Math.random() * 1000),
+        clinic: null,
+        name: data.name || null,
+        email: data.email || null,
+        phone: data.phone || null,
+        preferred_clinic: data.preferred_clinic || null,
+        issue_category: data.issue_category || null,
+        issue_specifics: data.issue_specifics || null,
+        symptom_description: data.symptom_description || null,
+        symptom_analysis: null,
+        pain_duration: null,
+        pain_severity: null,
+        previous_treatment: data.previous_treatment || null,
+        additional_info: null,
+        image_path: data.image_path || null,
+        image_analysis: null,
+        calendar_booking: data.calendar_booking || null,
+        booking_confirmation: data.booking_confirmation || null,
+        final_question: data.final_question || null,
+        additional_help: data.additional_help || null,
+        emoji_survey: data.emoji_survey || null,
+        survey_response: data.survey_response || null,
+        conversation_log: data.conversation_log || [],
+        completed_steps: data.completed_steps || [],
+        createdAt: data.createdAt || new Date(),
+        image_url: null,
+        has_image: data.has_image || false,
+        raw_json: null,
+        clinic_group: (data as any).clinic_group || null,
+        clinic_domain: null,
+        clinic_source: null,
+        source: (data as any).source || null,
+        image_urls: null,
+        status: 'new',
+        clinic_slug: null,
+        submission_uuid: null,
+        createdat: null,
+        updatedAt: null,
+        updatedat: null,
+        external_id: null,
+        progress: null,
+        ai_confidence_level: null,
+        red_flags_detected: false,
+        callback_completed_at: null,
+        callback_completed_by: null,
+        referral_type: null,
+        referral_notes: null
+      };
+      mockStore.set(mockConsultation.id, mockConsultation);
       return Promise.resolve(mockConsultation);
     }
 
@@ -104,12 +154,13 @@ export const storage = {
         throw new Error(`Consultation ${id} not found in mock store`);
       }
       
-      const updated = {
+      const updated: Consultation = {
         ...existing,
         ...data,
         image_analysis: data.image_analysis ? formatJsonFieldForDb(data.image_analysis) : existing.image_analysis,
         symptom_analysis: data.symptom_analysis ? formatJsonFieldForDb(data.symptom_analysis) : existing.symptom_analysis,
         conversation_log: data.conversation_log ? formatConversationLogForDb(data.conversation_log) : existing.conversation_log,
+        completed_steps: data.completed_steps || existing.completed_steps || []
       };
       
       mockStore.set(id, updated);

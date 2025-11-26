@@ -62,15 +62,15 @@ export async function exportConsultationsToCSV(
     createdAt: c.createdAt
       ? new Date(c.createdAt).toLocaleString('en-IE')
       : '',
-    hasImage: c.hasImage ? 'Yes' : 'No',
+    hasImage: c.has_image ? 'Yes' : 'No',
     imageAnalysis:
-      c.imageAnalysis && typeof c.imageAnalysis !== 'string'
-        ? JSON.stringify(c.imageAnalysis)
-        : c.imageAnalysis || '',
+      c.image_analysis && typeof c.image_analysis !== 'string'
+        ? JSON.stringify(c.image_analysis)
+        : c.image_analysis || '',
     userInput:
-      c.userInput && typeof c.userInput !== 'string'
-        ? JSON.stringify(c.userInput)
-        : c.userInput || ''
+      c.final_question && typeof c.final_question !== 'string'
+        ? JSON.stringify(c.final_question)
+        : c.final_question || ''
   }));
 
   await csvWriter.writeRecords(records);

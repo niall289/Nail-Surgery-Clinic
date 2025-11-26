@@ -1,4 +1,4 @@
-import { testWebhookSubmission } from './supabase';
+import { testWebhookSubmission } from './supabase.js';
 import dotenv from 'dotenv';
 
 // Load environment variables
