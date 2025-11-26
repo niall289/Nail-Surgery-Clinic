@@ -65,7 +65,7 @@ export const storage = {
         emoji_survey: data.emoji_survey || null,
         survey_response: data.survey_response || null,
         conversation_log: data.conversation_log || [],
-        completed_steps: data.completed_steps || [],
+        completed_steps: (data.completed_steps as string[]) || [],
         createdAt: data.createdAt || new Date(),
         image_url: null,
         has_image: data.has_image || false,
@@ -160,7 +160,7 @@ export const storage = {
         image_analysis: data.image_analysis ? formatJsonFieldForDb(data.image_analysis) : existing.image_analysis,
         symptom_analysis: data.symptom_analysis ? formatJsonFieldForDb(data.symptom_analysis) : existing.symptom_analysis,
         conversation_log: data.conversation_log ? formatConversationLogForDb(data.conversation_log) : existing.conversation_log,
-        completed_steps: data.completed_steps || existing.completed_steps || []
+        completed_steps: (data.completed_steps as string[]) || existing.completed_steps || []
       };
       
       mockStore.set(id, updated);
