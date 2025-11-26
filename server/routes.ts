@@ -12,6 +12,26 @@ import path from "path";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const apiPrefix = "/api";
+
+  // Helper to handle base64 image uploads
+  async function handleImageUpload(data: any) {
+    if (data.image_path && typeof data.image_path === 'string' && data.image_path.startsWith('data:image/')) {
+      try {
+        console.log(`[Image Handler] Uploading base64 image...`);
+        const publicUrl = await uploadBase64Image(data.image_path);
+        if (publicUrl) {
+          console.log(`[Image Handler] Image uploaded successfully: ${publicUrl}`);
+          data.image_path = publicUrl;
+          data.image_url = publicUrl;
+          data.has_image = true;
+        }
+      } catch (error) {
+        console.error(`[Image Handler] Error uploading image:`, error);
+      }
+    }
+    return data;
+  }
+
     // Test endpoint for webhook submission with payload inspection
     app.post(`${apiPrefix}/test-webhook`, async (_req, res) => {
       try {
@@ -82,6 +102,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(`${apiPrefix}/consultations`, async (req, res) => {
     try {
       const validatedData = schema.insertConsultationSchema.parse(req.body);
+      
+      // Ensure image is uploaded if present as base64
+      await handleImageUpload(validatedData);
+      
       const newConsultation = await storage.createConsultation(validatedData);
       res.status(201).json(newConsultation);
     } catch (error) {
@@ -96,6 +120,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(`${apiPrefix}/webhook/consultation`, async (req, res) => {
     try {
       const validatedData = schema.insertConsultationSchema.parse(req.body);
+      
+      // Ensure image is uploaded if present as base64
+      await handleImageUpload(validatedData);
+      
       const newConsultation = await storage.createConsultation(validatedData);
       res.status(201).json(newConsultation);
     } catch (error) {
@@ -121,11 +149,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (consultationData && field === 'final_submission') {
         console.log("[Final Submission] Saving complete consultation to database");
         const validatedData = schema.insertConsultationSchema.parse(consultationData);
+        
+        // Capture base64 image for webhook submission before we convert it to URL
+        const originalImage = (validatedData.image_path && typeof validatedData.image_path === 'string' && validatedData.image_path.startsWith('data:image/')) 
+          ? validatedData.image_path 
+          : undefined;
+
+        // Ensure image is uploaded to our storage and data updated with URL
+        await handleImageUpload(validatedData);
+        
         const newConsultation = await storage.createConsultation(validatedData);
         console.log(`Consultation saved with ID: ${newConsultation.id}`);
         try {
-          const imageData = validatedData.image_path?.startsWith('data:image/') ? validatedData.image_path : undefined;
-          const webhookResult = await submitWebhook(validatedData, imageData);
+          // Pass the original base64 so it can be attached as a file to the webhook
+          // The validatedData now contains the image_url from handleImageUpload
+          const webhookResult = await submitWebhook(validatedData, originalImage);
           if (webhookResult.success) {
             console.log("✅ Portal webhook forwarding successful");
           } else {
