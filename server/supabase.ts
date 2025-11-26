@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'crypto';
-import { createReadStream } from 'fs';
+import { createReadStream, statSync } from 'fs';
 import { Readable } from 'stream';
 import path from 'path';
 
@@ -62,6 +62,8 @@ export async function uploadToSupabase(
     return null;
   }
 
+  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
   try {
     // Create a clean file name with extension
     const fileExtension = path.extname(fileName) || '.png';
@@ -76,22 +78,38 @@ export async function uploadToSupabase(
     const filePath = `${year}/${month}/${cleanFileName}`;
     
     let data;
+    let fileSize = 0;
 
     // Handle different input types
     if (Buffer.isBuffer(fileBuffer)) {
       data = fileBuffer;
+      fileSize = fileBuffer.length;
     } else if (typeof fileBuffer === 'string') {
       // If it's a base64 string, convert to buffer
       if (fileBuffer.startsWith('data:')) {
         const base64Data = fileBuffer.split(';base64,').pop();
         data = Buffer.from(base64Data || '', 'base64');
+        fileSize = data.length;
       } else {
         // If it's a file path
+        try {
+          const stats = statSync(fileBuffer);
+          fileSize = stats.size;
+        } catch (e) {
+          console.warn('Could not determine file size for path:', fileBuffer);
+        }
         data = createReadStream(fileBuffer);
       }
     } else {
       // It's already a Readable stream
       data = fileBuffer;
+      console.warn('Uploading stream: Size validation skipped before upload.');
+    }
+
+    // Validate file size
+    if (fileSize > MAX_FILE_SIZE) {
+      console.error(`❌ Upload rejected: File size ${(fileSize / (1024 * 1024)).toFixed(2)}MB exceeds 50MB limit.`);
+      return null;
     }
 
     const { data: uploadData, error } = await supabase.storage
@@ -99,7 +117,11 @@ export async function uploadToSupabase(
       .upload(filePath, data, { contentType, upsert: true });
 
     if (error) {
-      console.error('Error uploading to Supabase:', error.message);
+      if (error.message.includes('413') || error.message.includes('Payload Too Large')) {
+         console.error('❌ Upload failed: Payload Too Large (413). File exceeds Supabase limits.');
+      } else {
+         console.error('Error uploading to Supabase:', error.message);
+      }
       return null;
     }
 

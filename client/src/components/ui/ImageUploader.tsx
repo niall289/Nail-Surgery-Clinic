@@ -46,7 +46,7 @@ export default function ImageUploader({ onImageUpload, disabled = false }: Image
     }
   };
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     setError(null);
 
     if (!file.type.match('image.*')) {
@@ -54,24 +54,93 @@ export default function ImageUploader({ onImageUpload, disabled = false }: Image
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Please upload an image smaller than 5MB');
-      return;
-    }
-
     setIsLoading(true);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setPreview(e.target?.result as string);
+    try {
+      let processedFile = file;
+
+      // Medical Triage Mode: Only compress if file is larger than 6MB
+      // This allows standard high-quality phone photos (usually 3-5MB) to pass through untouched
+      if (file.size > 6 * 1024 * 1024) {
+        try {
+          processedFile = await compressImage(file);
+        } catch (err) {
+          console.warn('Image compression failed, using original file', err);
+          // Fallback to original file if compression fails, but check size limit
+          if (file.size > 50 * 1024 * 1024) {
+             setError('Image is too large (over 50MB) and could not be compressed. Please try a smaller image.');
+             setIsLoading(false);
+             return;
+          }
+        }
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreview(e.target?.result as string);
+        setIsLoading(false);
+        onImageUpload(processedFile);
+      };
+      reader.onerror = () => {
+        setError('Error reading file');
+        setIsLoading(false);
+      };
+      reader.readAsDataURL(processedFile);
+    } catch (err) {
+      setError('Error processing image');
       setIsLoading(false);
-      onImageUpload(file);
-    };
-    reader.onerror = () => {
-      setError('Error reading file');
-      setIsLoading(false);
-    };
-    reader.readAsDataURL(file);
+    }
+  };
+
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = document.createElement('img');
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Increased resolution for medical detail (allows zooming)
+          const MAX_WIDTH = 2560;
+          const MAX_HEIGHT = 2560;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              reject(new Error('Compression failed'));
+              return;
+            }
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          }, 'image/jpeg', 0.85); // High quality (85%) for medical visibility
+        };
+        img.onerror = (error) => reject(error);
+      };
+      reader.onerror = (error) => reject(error);
+    });
   };
 
   const handleButtonClick = () => {
@@ -169,7 +238,7 @@ export default function ImageUploader({ onImageUpload, disabled = false }: Image
                 ? "Image uploads are disabled at this time" 
                 : "Drag and drop your foot image here, or use the buttons above"}
             </p>
-            <p className="mt-1 text-xs text-gray-500">PNG, JPG, JPEG up to 5MB</p>
+            <p className="mt-1 text-xs text-gray-500">PNG, JPG, JPEG supported</p>
           </div>
         )}
       </div>

@@ -109,29 +109,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // âœ… NEW: Partial sync route to support chatbot field syncing
   app.post(`${apiPrefix}/webhook/partial`, async (req, res) => {
     try {
-      const { field, value, consultationData } = req.body;
+      const { field, value, consultationData, consultationId } = req.body;
 
       if (!field || typeof value === "undefined") {
         return res.status(400).json({ error: "Missing field or value" });
       }
 
-      console.log(`ðŸ“¥ [Partial Sync] ${field}: ${value}`);
+      console.log(`[Partial Sync] ${field}: ${value}`);
 
-      // If this is a final submission with complete consultation data
+      // Final submission logic (unchanged)
       if (consultationData && field === 'final_submission') {
-        console.log("ðŸ“ [Final Submission] Saving complete consultation to database");
-
+        console.log("[Final Submission] Saving complete consultation to database");
         const validatedData = schema.insertConsultationSchema.parse(consultationData);
         const newConsultation = await storage.createConsultation(validatedData);
-
-        console.log(`âœ… Consultation saved with ID: ${newConsultation.id}`);
-        
-        // Forward to portal webhook
+        console.log(`Consultation saved with ID: ${newConsultation.id}`);
         try {
           const imageData = validatedData.image_path?.startsWith('data:image/') ? validatedData.image_path : undefined;
-          // Note: submitWebhook will now enrich the data automatically
           const webhookResult = await submitWebhook(validatedData, imageData);
-          
           if (webhookResult.success) {
             console.log("✅ Portal webhook forwarding successful");
           } else {
@@ -139,7 +133,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } catch (webhookError) {
           console.error("❌ Portal webhook error:", webhookError);
-          // Continue anyway - local save succeeded
         }
         return res.status(201).json({
           success: true,
@@ -148,9 +141,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      res.status(200).json({ success: true });
+      // Progressive save logic: upsert (create or update) consultation record
+      let upsertedConsultation = null;
+      if (consultationId) {
+        // Update existing consultation (non-destructive)
+        try {
+          upsertedConsultation = await storage.updateConsultation(Number(consultationId), { [field]: value });
+          console.log(`[Progressive Save] Updated consultation ID: ${consultationId} with { ${field}: ${JSON.stringify(value)} }`);
+        } catch (err) {
+          console.error(`[Progressive Save] Failed to update consultation ID: ${consultationId}`, err);
+        }
+      } else if (consultationData) {
+        // Create new consultation if no ID (first milestone)
+        try {
+          // Accept partial/incomplete data for progressive save (no strict validation)
+          upsertedConsultation = await storage.createConsultation({ ...consultationData, [field]: value });
+          console.log(`[Progressive Save] Created new consultation with { ${field}: ${JSON.stringify(value)} }`);
+        } catch (err) {
+          console.error(`[Progressive Save] Failed to create consultation`, err);
+        }
+      }
+
+      res.status(200).json({ success: true, consultation: upsertedConsultation });
     } catch (error) {
-      console.error("âŒ Error in /webhook/partial:", error);
+      console.error("Error in /webhook/partial:", error);
       res.status(500).json({ error: "Failed to sync partial field" });
     }
   });

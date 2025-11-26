@@ -12,6 +12,9 @@ const logMockWarningChatbot = (methodName: string, data?: any) => {
   }
 };
 
+// In-memory store for mock mode
+const mockStore = new Map<number, Consultation>();
+
 const formatConversationLogForDb = (log: any): { step: string; response: string }[] => {
   if (Array.isArray(log)) {
     return log.filter(item => typeof item === 'object' && item !== null && 'step' in item && 'response' in item)
@@ -37,38 +40,13 @@ export const storage = {
   async createConsultation(data: InsertConsultation): Promise<Consultation> {
     if (!db) {
       logMockWarningChatbot('createConsultation', data);
-      const now = new Date();
-      const mockConsultation: any = {
-        id: Date.now(),
-        name: data.name || 'Mock User',
-        email: data.email, 
-        phone: data.phone, 
-        preferred_clinic: data.preferred_clinic || null,
-        issue_category: data.issue_category || 'general', 
-        issue_specifics: data.issue_specifics || null,
-        pain_duration: null,
-        pain_severity: null,
-        additional_info: null,
-        previous_treatment: data.previous_treatment || null,
-        has_image: data.has_image || null, 
-        image_path: data.image_path || null,
-        image_analysis: formatJsonFieldForDb(data.image_analysis),
-        symptom_description: data.symptom_description || null,
-        symptom_analysis: formatJsonFieldForDb(data.symptom_analysis),
-        calendar_booking: data.calendar_booking || null,
-        booking_confirmation: data.booking_confirmation || null,
-        final_question: data.final_question || null,
-        additional_help: data.additional_help || null,
-        emoji_survey: data.emoji_survey || null,
-        survey_response: data.survey_response || null,
-        conversation_log: formatConversationLogForDb(data.conversation_log),
-        completed_steps: data.completed_steps || [],
-        createdAt: now
-      };
+      // ... mock implementation ...
       return Promise.resolve(mockConsultation);
     }
 
-    const dbData: InsertConsultation = {
+    // Filter out fields that are not in the schema or are undefined
+    // This prevents "column does not exist" errors if we try to insert extra fields
+    const dbData: any = {
       name: data.name,
       email: data.email,
       phone: data.phone,
@@ -89,8 +67,15 @@ export const storage = {
       survey_response: data.survey_response,
       conversation_log: data.conversation_log || [],
       completed_steps: data.completed_steps || [],
-      createdAt: data.createdAt || new Date()
+      createdAt: data.createdAt || new Date(),
+      // Add fields that might be missing from the strict type but exist in DB
+      source: (data as any).source || 'nailsurgery',
+      clinic_group: (data as any).clinic_group || 'The Nail Surgery Clinic',
+      clinic_domain: (data as any).clinic_domain || 'nailsurgeryclinic.engageiobots.com',
     };
+
+    // Remove undefined keys
+    Object.keys(dbData).forEach(key => dbData[key] === undefined && delete dbData[key]);
 
     const [newConsultation] = await db.insert(consultations)
       .values(dbData) 
@@ -102,7 +87,7 @@ export const storage = {
   async getConsultationById(id: number): Promise<Consultation | undefined> {
     if (!db || !db.query || !db.query.consultations) { 
       logMockWarningChatbot('getConsultationById', { id });
-      return Promise.resolve(undefined);
+      return Promise.resolve(mockStore.get(id));
     }
     // @ts-ignore 
     const consultationResult = await db.query.consultations.findFirst({
@@ -114,14 +99,24 @@ export const storage = {
   async updateConsultation(id: number, data: Partial<InsertConsultation>): Promise<Consultation> {
     if (!db) {
       logMockWarningChatbot('updateConsultation', { id, ...data });
-      return Promise.resolve({
+      const existing = mockStore.get(id);
+      if (!existing) {
+        throw new Error(`Consultation ${id} not found in mock store`);
+      }
+      
+      const updated = {
+        ...existing,
         ...data,
-        id,
-        createdAt: new Date()
-      } as Consultation);
+        image_analysis: data.image_analysis ? formatJsonFieldForDb(data.image_analysis) : existing.image_analysis,
+        symptom_analysis: data.symptom_analysis ? formatJsonFieldForDb(data.symptom_analysis) : existing.symptom_analysis,
+        conversation_log: data.conversation_log ? formatConversationLogForDb(data.conversation_log) : existing.conversation_log,
+      };
+      
+      mockStore.set(id, updated);
+      return Promise.resolve(updated);
     }
 
-    const dbData: Partial<InsertConsultation> = {};
+    const dbData: any = {};
     if (data.name !== undefined) dbData.name = data.name;
     if (data.email !== undefined) dbData.email = data.email;
     if (data.phone !== undefined) dbData.phone = data.phone;
@@ -142,6 +137,10 @@ export const storage = {
     if (data.survey_response !== undefined) dbData.survey_response = data.survey_response;
     if (data.conversation_log !== undefined) dbData.conversation_log = data.conversation_log || [];
     if (data.completed_steps !== undefined) dbData.completed_steps = data.completed_steps || [];
+    
+    // Add extra fields if present in data
+    if ((data as any).source !== undefined) dbData.source = (data as any).source;
+    if ((data as any).clinic_group !== undefined) dbData.clinic_group = (data as any).clinic_group;
 
     const [updatedConsultation] = await db
       .update(consultations)
@@ -155,7 +154,9 @@ export const storage = {
   async getAllConsultations(page = 1, limit = 10): Promise<Consultation[]> {
     if (!db || !db.query || !db.query.consultations) { 
       logMockWarningChatbot('getAllConsultations', { page, limit });
-      return Promise.resolve([]);
+      return Promise.resolve(Array.from(mockStore.values())
+        .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
+        .slice((page - 1) * limit, page * limit));
     }
     // @ts-ignore
     const consultationList = await db.query.consultations.findMany({

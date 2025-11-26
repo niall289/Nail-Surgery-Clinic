@@ -90,21 +90,22 @@ export default function useChat({ consultationId: initialConsultationId, onSaveD
     await delay(step.delay || 600);
 
 
-    // Progressive save: create consultation after 'previous_treatment' step
-    if (stepKey === "previous_treatment" && !consultationId) {
-      const currentUserData = overrideUserData || userData;
+    // Progressive save: create consultation after 'name' step
+    // We wait until the 'name_greeting' step to ensure we have the user's name
+    const currentUserData = overrideUserData || userData;
+    if (stepKey === "name_greeting" && !consultationId && currentUserData.name) {
       try {
         const consultationData = {
           name: currentUserData.name,
-          email: currentUserData.email,
-          phone: currentUserData.phone,
+          email: currentUserData.email || "pending@email.com", // Placeholder until email is collected
+          phone: currentUserData.phone || "0000000000", // Placeholder until phone is collected
           source: "nailsurgery",
           chatbotSource: "nailsurgery",
           clinic_group: "The Nail Surgery Clinic",
           clinic: "nailsurgery",
           clinic_domain: "nailsurgeryclinic.engageiobots.com",
           preferred_clinic: currentUserData.preferred_clinic || "Nail Surgery Clinic",
-          issue_category: currentUserData.issue_category,
+          issue_category: currentUserData.issue_category || "pending",
           issue_specifics: currentUserData.ingrown_followup || currentUserData.fungal_followup || currentUserData.trauma_followup || currentUserData.fingernail_followup || currentUserData.other_followup,
           symptom_description: currentUserData.symptom_description,
           previous_treatment: currentUserData.previous_treatment === "yes" ? currentUserData.treatment_details : "no",
@@ -123,37 +124,51 @@ export default function useChat({ consultationId: initialConsultationId, onSaveD
     }
 
     // PATCH updates at milestones if consultationId exists
-    const milestoneSteps = ["image_upload", "image_analysis", "symptom_description_prompt", "additional_help", "emoji_survey", "survey_response", "submit_consultation"];
-    if (consultationId && milestoneSteps.includes(stepKey)) {
-      const currentUserData = overrideUserData || userData;
+    const milestoneSteps = ["email", "phone", "previous_treatment", "image_upload", "image_analysis", "symptom_description_prompt", "additional_help", "emoji_survey", "survey_response", "submit_consultation", "issue_category", "ingrown_followup", "fungal_followup", "trauma_followup", "fingernail_followup", "other_followup"];
+    if (consultationId && milestoneSteps.includes(String(stepKey))) {
       try {
         const patchData: Record<string, any> = {};
-        // Add fields relevant to the milestone
-        if (stepKey === "image_upload" && currentUserData.imagePath) patchData.image_path = currentUserData.imagePath;
-        if (stepKey === "image_analysis" && currentUserData.imageAnalysisResults) patchData.image_analysis = JSON.stringify(currentUserData.imageAnalysisResults);
-        if (stepKey === "symptom_description_prompt" && currentUserData.symptom_description) patchData.symptom_description = currentUserData.symptom_description;
-        if (stepKey === "additional_help" && currentUserData.additional_help) patchData.additional_info = currentUserData.additional_help;
-        if (stepKey === "emoji_survey" && currentUserData.emoji_survey) patchData.survey_response = currentUserData.emoji_survey;
-        if (stepKey === "survey_response" && currentUserData.survey_response) patchData.survey_response = currentUserData.survey_response;
+        
+        // Always include core contact info if available
+        if (currentUserData.email) patchData.email = currentUserData.email;
+        if (currentUserData.phone) patchData.phone = currentUserData.phone;
+        
+        // Include other fields if they exist in the data
+        if (currentUserData.previous_treatment) {
+             patchData.previous_treatment = currentUserData.previous_treatment === "yes" ? currentUserData.treatment_details : "no";
+        }
+        
+        if (currentUserData.issue_category) {
+             patchData.issue_category = currentUserData.issue_category;
+             patchData.issue_specifics = currentUserData.ingrown_followup || currentUserData.fungal_followup || currentUserData.trauma_followup || currentUserData.fingernail_followup || currentUserData.other_followup;
+        }
+        
+        if (currentUserData.imagePath) patchData.image_path = currentUserData.imagePath;
+        if (currentUserData.imageAnalysisResults) patchData.image_analysis = JSON.stringify(currentUserData.imageAnalysisResults);
+        if (currentUserData.symptom_description) patchData.symptom_description = currentUserData.symptom_description;
+        if (currentUserData.additional_help) patchData.additional_info = currentUserData.additional_help;
+        if (currentUserData.emoji_survey) patchData.survey_response = currentUserData.emoji_survey;
+        if (currentUserData.survey_response) patchData.survey_response = currentUserData.survey_response;
+
         // On final step, patch all data
         if (stepKey === "submit_consultation") {
           patchData.completed_steps = JSON.stringify(Object.keys(currentUserData));
           patchData.conversation_log = JSON.stringify(currentUserData);
         }
+        
         if (Object.keys(patchData).length > 0) {
           await apiRequest(`/api/consultations/${consultationId}`, {
             method: "PATCH",
             body: JSON.stringify(patchData),
           });
-          console.log(`✅ Consultation updated at step '${stepKey}'`);
+          console.log(`✅ Consultation updated at step '${String(stepKey)}'`);
         }
       } catch (error) {
-        console.error(`❌ Failed to update consultation at step '${stepKey}':`, error);
+        console.error(`❌ Failed to update consultation at step '${String(stepKey)}':`, error);
       }
     }
 
     if (stepKey === "image_analysis") {
-      const currentUserData = overrideUserData || userData;
       const imageBase64 = currentUserData.imagePath;
 
       setChatHistory(prev => [
@@ -212,7 +227,6 @@ export default function useChat({ consultationId: initialConsultationId, onSaveD
       return;
     }
 
-    const currentUserData = overrideUserData || userData;
     let message = messageOverride;
 
     if (!message) {

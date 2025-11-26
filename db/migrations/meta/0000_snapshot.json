@@ -1,0 +1,484 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.consultations": {
+      "name": "consultations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigserial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "clinic": {
+          "name": "clinic",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "preferred_clinic": {
+          "name": "preferred_clinic",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "issue_category": {
+          "name": "issue_category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "issue_specifics": {
+          "name": "issue_specifics",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "symptom_description": {
+          "name": "symptom_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "symptom_analysis": {
+          "name": "symptom_analysis",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pain_duration": {
+          "name": "pain_duration",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pain_severity": {
+          "name": "pain_severity",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "previous_treatment": {
+          "name": "previous_treatment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "additional_info": {
+          "name": "additional_info",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_path": {
+          "name": "image_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_analysis": {
+          "name": "image_analysis",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "calendar_booking": {
+          "name": "calendar_booking",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "booking_confirmation": {
+          "name": "booking_confirmation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "final_question": {
+          "name": "final_question",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "additional_help": {
+          "name": "additional_help",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "emoji_survey": {
+          "name": "emoji_survey",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "survey_response": {
+          "name": "survey_response",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conversation_log": {
+          "name": "conversation_log",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "completed_steps": {
+          "name": "completed_steps",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_image": {
+          "name": "has_image",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "raw_json": {
+          "name": "raw_json",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clinic_group": {
+          "name": "clinic_group",
+          "type": "clinic_group_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clinic_domain": {
+          "name": "clinic_domain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clinic_source": {
+          "name": "clinic_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_urls": {
+          "name": "image_urls",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'new'"
+        },
+        "clinic_slug": {
+          "name": "clinic_slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "generated": {
+            "as": "\nCASE clinic_group\n    WHEN 'The Nail Surgery Clinic'::clinic_group_enum THEN 'nailsurgery'::text\n    WHEN 'FootCare Clinic'::clinic_group_enum THEN 'footcare'::text\n    WHEN 'Lasercare Clinic'::clinic_group_enum THEN 'lasercare'::text\n    ELSE NULL::text\nEND",
+            "type": "stored"
+          }
+        },
+        "submission_uuid": {
+          "name": "submission_uuid",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdat": {
+          "name": "createdat",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updatedat": {
+          "name": "updatedat",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "external_id": {
+          "name": "external_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "progress": {
+          "name": "progress",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ai_confidence_level": {
+          "name": "ai_confidence_level",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "red_flags_detected": {
+          "name": "red_flags_detected",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "callback_completed_at": {
+          "name": "callback_completed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "callback_completed_by": {
+          "name": "callback_completed_by",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "referral_type": {
+          "name": "referral_type",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "referral_notes": {
+          "name": "referral_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.appointment_status": {
+      "name": "appointment_status",
+      "values": [
+        "scheduled",
+        "confirmed",
+        "completed",
+        "cancelled",
+        "no_show"
+      ],
+      "schema": "public"
+    },
+    "public.audit_action_type": {
+      "name": "audit_action_type",
+      "values": [
+        "VIEW_PATIENT",
+        "EXPORT_DATA",
+        "UPDATE_AUTOMATION",
+        "UPDATE_CHATBOT_SETTINGS",
+        "UPDATE_CLINIC_SETTINGS",
+        "CREATE_APPOINTMENT",
+        "UPDATE_APPOINTMENT",
+        "DELETE_APPOINTMENT",
+        "LOGIN",
+        "LOGIN_FAILED",
+        "LOGOUT",
+        "CREATE_USER",
+        "UPDATE_USER",
+        "DELETE_USER",
+        "VIEW_AUDIT_LOGS",
+        "PATIENT_PORTAL_LOGIN",
+        "PATIENT_PORTAL_LOGOUT",
+        "PATIENT_PORTAL_VIEW_APPOINTMENTS",
+        "PATIENT_PORTAL_VIEW_CONSULTATIONS",
+        "PATIENT_PORTAL_UPDATE_PROFILE",
+        "PATIENT_PORTAL_INVITE_SENT",
+        "PATIENT_PORTAL_SESSION_REVOKED"
+      ],
+      "schema": "public"
+    },
+    "public.automation_category": {
+      "name": "automation_category",
+      "values": [
+        "appointment",
+        "patient_care",
+        "inbox",
+        "marketing",
+        "operational",
+        "financial",
+        "reviews"
+      ],
+      "schema": "public"
+    },
+    "public.automation_complexity": {
+      "name": "automation_complexity",
+      "values": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "schema": "public"
+    },
+    "public.automation_run_status": {
+      "name": "automation_run_status",
+      "values": [
+        "success",
+        "error",
+        "pending",
+        "cancelled"
+      ],
+      "schema": "public"
+    },
+    "public.chatbot_tone": {
+      "name": "chatbot_tone",
+      "values": [
+        "Friendly",
+        "Professional",
+        "Clinical",
+        "Casual"
+      ],
+      "schema": "public"
+    },
+    "public.clinic_group_enum": {
+      "name": "clinic_group_enum",
+      "values": [
+        "FootCare Clinic",
+        "The Nail Surgery Clinic",
+        "Lasercare Clinic"
+      ],
+      "schema": "public"
+    },
+    "public.landing_page_cta_type": {
+      "name": "landing_page_cta_type",
+      "values": [
+        "book",
+        "call",
+        "form",
+        "whatsapp",
+        "link"
+      ],
+      "schema": "public"
+    },
+    "public.landing_page_event_type": {
+      "name": "landing_page_event_type",
+      "values": [
+        "view",
+        "cta_click"
+      ],
+      "schema": "public"
+    },
+    "public.landing_page_status": {
+      "name": "landing_page_status",
+      "values": [
+        "draft",
+        "published",
+        "archived"
+      ],
+      "schema": "public"
+    },
+    "public.landing_page_variant_status": {
+      "name": "landing_page_variant_status",
+      "values": [
+        "active",
+        "paused",
+        "winner"
+      ],
+      "schema": "public"
+    },
+    "public.run_frequency": {
+      "name": "run_frequency",
+      "values": [
+        "event",
+        "daily",
+        "weekly",
+        "monthly",
+        "adhoc"
+      ],
+      "schema": "public"
+    },
+    "public.user_role": {
+      "name": "user_role",
+      "values": [
+        "owner",
+        "manager",
+        "clinician",
+        "receptionist",
+        "marketing"
+      ],
+      "schema": "public"
+    },
+    "public.visit_type": {
+      "name": "visit_type",
+      "values": [
+        "in_person",
+        "video"
+      ],
+      "schema": "public"
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "tables": {}
+  }
+}
