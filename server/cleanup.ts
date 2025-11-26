@@ -1,7 +1,7 @@
 
-import { db } from "./db";
-import { consultations } from "../shared/schema";
-import { uploadBase64Image } from "./supabase";
+import { db } from "./db.js";
+import { consultations } from "../shared/schema.js";
+import { uploadBase64Image } from "./supabase.js";
 import { eq, like, and, isNotNull } from "drizzle-orm";
 
 /**
